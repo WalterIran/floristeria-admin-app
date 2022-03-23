@@ -4,6 +4,7 @@ import useAuth from '../hooks/useAuth';
 
 //Screens and Stacks
 import Home from '../screens/Home';
+import OrderNavigation from '../navigation/OrdersNavigation';
 
 //Icons
 import AntIcons from 'react-native-vector-icons/AntDesign';
@@ -52,7 +53,7 @@ const DrawerNavigation = () => {
             />
             <Drawer.Screen 
                 name='Orders'
-                component={Home}
+                component={OrderNavigation}
                 options={{
                     drawerLabel: 'Órdenes',
                     drawerIcon: ({color}) => (
