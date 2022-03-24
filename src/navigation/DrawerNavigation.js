@@ -7,15 +7,13 @@ import Home from '../screens/Home';
 import OrderNavigation from '../navigation/OrdersNavigation';
 import ProductsNavigation from './ProductsNavigation';
 
+import TagsNavigation from './TagsNavigation';
 //Icons
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import FA5Icons from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import EntypoIcons from 'react-native-vector-icons/Entypo';
 import EmployeeNavigation from './EmployeeNavigation';
-
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-const Stack = createNativeStackNavigator();
 
 const Drawer = createDrawerNavigator();
 
@@ -78,7 +76,7 @@ const DrawerNavigation = () => {
             />
             <Drawer.Screen 
                 name='Tags'
-                component={Home}
+                component={TagsNavigation}
                 options={{
                     drawerLabel: 'Etiquetas',
                     drawerIcon: ({color}) => (
