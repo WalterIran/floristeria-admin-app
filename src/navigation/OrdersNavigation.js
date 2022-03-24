@@ -57,8 +57,7 @@ const OrdersNavigation = () => {
                 name="OrdersList"
                 component={TopBarNavigation}
                 options={{
-                    title: 'Pedidos',
-                    headerShadowVisible: false
+                    headerShown: false
                 }}
             />
             <Stack.Screen 

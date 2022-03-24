@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, ScrollView, Pressable, ActivityIndicator, Modal } from 'react-native';
 import { useEffect, useState } from 'react';
 import "intl";
 import "intl/locale-data/jsonp/en";
@@ -6,6 +6,7 @@ import Status from '../../components/Status.component';
 import Detail from '../../components/OrderDetail.component';
 import { useNavigation } from '@react-navigation/native';
 import { formatter } from '../../utils/formatter';
+import {Picker} from '@react-native-picker/picker';
 
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 
@@ -14,6 +15,8 @@ const OrderDetail = ({route}) => {
   const axiosPrivate = useAxiosPrivate();
   const { billId } = route?.params;
   const [detail, setDetail] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedState, setSelectedState] = useState();
   const [orderStatus, setOrderStatus] = useState([
     {
       key: 'received',
@@ -78,10 +81,43 @@ const OrderDetail = ({route}) => {
     {
       detail ? (
         <SafeAreaView style={styles.background}>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => {
+              setModalVisible(!modalVisible);
+            }}
+          >
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <View style={styles.pickerView}>
+                    <Picker
+                        selectedValue={selectedState}
+                        onValueChange={(itemValue, itemIndex) =>
+                            setSelectedState(itemValue)
+                        }
+                    >
+                        <Picker.Item label="Seleccionar estado" value="" enabled={false} style={{color: 'gray'}}/>
+                        <Picker.Item label="Preparando" value="processing" />
+                        <Picker.Item label="Enviando" value="shipping" />
+                        <Picker.Item label="Entregado" value="completed" />
+                        <Picker.Item label="Cancelado" value="canceled" />
+                    </Picker>
+                </View>
+                <Pressable
+                  style={[styles.button, styles.buttonClose]}
+                  onPress={() => setModalVisible(!modalVisible)}
+                >
+                  <Text style={styles.textStyle}>Guardar</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
             <ScrollView contentContainerStyle={{paddingVertical: 32, paddingHorizontal: 16}}>
               <View style={[styles.container, styles.shadow]}>
                   <View style={styles.section}>
-                    <Text style={styles.orderNum}>Pedido: #{`${billId}`.padStart(5,0)}</Text>
+                    <Text style={styles.orderNum}>Orden: #{`${billId}`.padStart(5,0)}</Text>
                     <View style={styles.line}></View>
                     <Text>
                       <Text style={[styles.text]}>Estado: </Text>
@@ -96,9 +132,16 @@ const OrderDetail = ({route}) => {
                     </View>
                     <Text style={[styles.text, {marginVertical: 1}]}>Fecha de Pago: {new Intl.DateTimeFormat('es-HN', {dateStyle: 'medium', timeStyle: 'short'}).format(new Date(detail.createdAt))}</Text>
                     <Text style={[styles.text, {marginVertical: 1}]}>Fecha de Entrega:  {new Intl.DateTimeFormat('es-HN', {dateStyle: 'medium', timeStyle: 'short'}).format(new Date(detail.deliveryDate))}</Text>
+                  </View>
+                  <View style={styles.section}>
+                    <Text style={styles.orderNum}>Detalle de envio</Text>
+                    <View style={styles.line}></View>
                     <Text style={[styles.text, {marginVertical: 1}]}>Recibe: {detail.destinationPersonName}</Text>
-                    <Text style={[styles.text, {marginVertical: 1}]}>Contacto: {detail.destinationPersonPhone}</Text>
-                    <Text style={[styles.text, {marginVertical: 1}]}>Lugar de entrega: {detail.destinationAddress}</Text>
+                    <Text style={[styles.text, {marginVertical: 1}]}>Telefono: {detail.destinationPersonPhone}</Text>
+                    <Text style={[styles.text, {marginVertical: 1}]}>Dirección: {detail.destinationAddress}</Text>
+                    <Text style={[styles.text, {marginVertical: 1}]}>Referencias: {detail.destinationAddressDetails}</Text>
+                    <Text style={[styles.text, {marginVertical: 1}]}>Ciudad: {detail.city}</Text>
+                    <Text style={[styles.text, {marginVertical: 1}]}>Dedicatoria: {detail.dedicationMsg}</Text>
                   </View>
                   <View style={styles.section}>
                     <Text style={styles.orderNum}>Tu compra</Text>
@@ -128,8 +171,9 @@ const OrderDetail = ({route}) => {
                   <View style={styles.section}>
                     <Pressable
                       style={styles.btn}
+                      onPress={() => setModalVisible(true)}
                     >
-                        <Text style={styles.btnText} >Actualizar Información</Text>
+                        <Text style={styles.btnText} >Editar estado</Text>
                     </Pressable>
                   </View>
               </View>
@@ -199,7 +243,7 @@ const styles = StyleSheet.create({
   btn: {
     backgroundColor: '#BFA658',
     fontSize: 24,
-    height: 60,
+    height: 55,
     width: '100%',
     justifyContent: 'center',
     borderRadius: 12,
@@ -215,5 +259,55 @@ const styles = StyleSheet.create({
       color: '#fff',
       textAlign: 'center',
       fontSize: 24,
+  },
+  // Modal
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 10,
+    padding: 10,
+    elevation: 2,
+    width: 300
+  },
+  buttonClose: {
+    backgroundColor: "#BFA658",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center"
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center"
+  },
+  pickerView: {
+      borderWidth: 1,
+      borderColor: '#ababab',
+      marginBottom: 24,
+      height: 52,
+      width: 300,
+      borderRadius: 12,
+      paddingLeft: 12,
+      justifyContent: 'center'
   }
 })
