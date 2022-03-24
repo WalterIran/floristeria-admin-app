@@ -6,6 +6,7 @@ const Stack = createNativeStackNavigator();
 //Screens
 import ProductList from "../screens/products/ProductList";
 import Product from "../screens/products/Product";
+import Statistics from "../screens/products/Statistics";
 
 const ProductsNavigation = () => {
     return (
@@ -32,6 +33,13 @@ const ProductsNavigation = () => {
                 component={Product}
                 options={{
                     headerTitle: "Editar Producto"
+                }}
+            />
+            <Stack.Screen 
+                name="ProductStatistics"
+                component={Statistics}
+                options={{
+                    headerTitle: "Estadísticas de Producto"
                 }}
             />
         </Stack.Navigator>
