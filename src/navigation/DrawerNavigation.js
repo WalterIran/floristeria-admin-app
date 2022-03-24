@@ -4,12 +4,13 @@ import useAuth from '../hooks/useAuth';
 
 //Screens and Stacks
 import Home from '../screens/Home';
-
+import TagsNavigation from './TagsNavigation';
 //Icons
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import FA5Icons from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import EntypoIcons from 'react-native-vector-icons/Entypo';
+import ViewTags from '../screens/Tags/ViewTags';
 
 const Drawer = createDrawerNavigator();
 
@@ -72,9 +73,10 @@ const DrawerNavigation = () => {
             />
             <Drawer.Screen 
                 name='Tags'
-                component={Home}
+                component={TagsNavigation}
                 options={{
-                    drawerLabel: 'Etiquetas',
+                   
+                     drawerLabel: 'Etiquetas',
                     drawerIcon: ({color}) => (
                         <FA5Icons name='tag' size={22} color={color} />
                     )
