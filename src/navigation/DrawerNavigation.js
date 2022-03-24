@@ -4,6 +4,7 @@ import useAuth from '../hooks/useAuth';
 
 //Screens and Stacks
 import Home from '../screens/Home';
+import ProductsNavigation from './ProductsNavigation';
 
 //Icons
 import AntIcons from 'react-native-vector-icons/AntDesign';
@@ -62,12 +63,12 @@ const DrawerNavigation = () => {
             />
             <Drawer.Screen 
                 name='Products'
-                component={Home}
+                component={ProductsNavigation}
                 options={{
-                    drawerLabel: 'Productos',
+                    headerShown: false,
                     drawerIcon: ({color}) => (
                         <EntypoIcons name='shop' size={22} color={color} />
-                    )
+                    ),
                 }}
             />
             <Drawer.Screen 
