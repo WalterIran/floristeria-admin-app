@@ -1,8 +1,8 @@
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, Text, View, ScrollView, SafeAreaView, Pressable } from 'react-native';
-import React, { useState, useEffect } from 'react';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-
+import BottomSheet from '@gorhom/bottom-sheet';
 //API
 import axios from '../../api/axios';
 const newstProductURL = '/products/newest';
@@ -16,6 +16,20 @@ const ProductList = () => {
     const navigation = useNavigation();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
+
+    // ref
+    const bottomSheetRef = useRef(null);
+
+    // variables
+    const snapPoints = useMemo(() => ['1%', '50%','80%'], []);
+
+    // callbacks
+    const handleSheetChanges = useCallback((index) => {
+      console.log('handleSheetChanges', index);
+    }, []);
+    
+    const handleCloseSheet = () => bottomSheetRef.current.close();
+    const handleOpenSheet = () => bottomSheetRef.current.snapToPosition('80%');
 
     const showProducts = async () => {
         try {
@@ -37,7 +51,7 @@ const ProductList = () => {
             <View style={styles.searchSection}>
                 <SearchBar setProducts={setProducts} setLoading={setLoading} />
                 <View style={styles.filterBtn}>
-                    <Pressable>
+                    <Pressable onPress={handleOpenSheet}>
                         <IonIcon name='filter' size={24} />
                     </Pressable>
                 </View>
@@ -66,6 +80,16 @@ const ProductList = () => {
                     </View>
                 </SafeAreaView>
             </ScrollView>
+          <BottomSheet
+            ref={bottomSheetRef}
+            index={0}
+            snapPoints={snapPoints}
+            onChange={handleSheetChanges}
+          >
+            <View style={styles.contentContainer}>
+              <Pressable onPress={handleCloseSheet}><Text>Awesome 🎉</Text></Pressable>
+            </View>
+          </BottomSheet>
         </View>
     </Wrapper>
   )
