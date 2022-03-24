@@ -12,6 +12,10 @@ import AntIcons from 'react-native-vector-icons/AntDesign';
 import FA5Icons from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import EntypoIcons from 'react-native-vector-icons/Entypo';
+import EmployeeNavigation from './EmployeeNavigation';
+
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+const Stack = createNativeStackNavigator();
 
 const Drawer = createDrawerNavigator();
 
@@ -84,14 +88,16 @@ const DrawerNavigation = () => {
             />
             {
                 auth.user.userRole === 'admin' && (
-                    <Drawer.Screen 
+                    
+                     <Drawer.Screen 
                         name='Employees'
-                        component={Home}
+                        component={EmployeeNavigation}
                         options={{
                             drawerLabel: 'Empleados',
                             drawerIcon: ({color}) => (
                                 <FA5Icons name='users-cog' size={22} color={color} />
-                            )
+                            ),
+                            marginLeft: 10
                         }}
                     />
                 )

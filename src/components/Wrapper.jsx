@@ -18,6 +18,8 @@ const Wrapper = ({children}) => {
   )
 }
 
+
+
 export default Wrapper
 
 const styles = StyleSheet.create({
