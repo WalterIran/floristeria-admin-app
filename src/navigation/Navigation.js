@@ -2,7 +2,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import useAuth from "../hooks/useAuth";
 
 //Stacks 
-import Home from "../screens/Home";
 import AuthNavigation from "./AuthNavigation";
 import DrawerNavigation from "./DrawerNavigation";
 import EmployeeNavigation from "./EmployeeNavigation";

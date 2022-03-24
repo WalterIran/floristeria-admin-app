@@ -4,17 +4,16 @@ import useAuth from '../hooks/useAuth';
 
 //Screens and Stacks
 import Home from '../screens/Home';
-import Employee from '../screens/employee/Employee';
+import OrderNavigation from '../navigation/OrdersNavigation';
+import ProductsNavigation from './ProductsNavigation';
 
+import TagsNavigation from './TagsNavigation';
 //Icons
 import AntIcons from 'react-native-vector-icons/AntDesign';
 import FA5Icons from 'react-native-vector-icons/FontAwesome5';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import EntypoIcons from 'react-native-vector-icons/Entypo';
 import EmployeeNavigation from './EmployeeNavigation';
-
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-const Stack = createNativeStackNavigator();
 
 const Drawer = createDrawerNavigator();
 
@@ -57,7 +56,7 @@ const DrawerNavigation = () => {
             />
             <Drawer.Screen 
                 name='Orders'
-                component={Home}
+                component={OrderNavigation}
                 options={{
                     drawerLabel: 'Órdenes',
                     drawerIcon: ({color}) => (
@@ -67,17 +66,17 @@ const DrawerNavigation = () => {
             />
             <Drawer.Screen 
                 name='Products'
-                component={Home}
+                component={ProductsNavigation}
                 options={{
-                    drawerLabel: 'Productos',
+                    headerShown: false,
                     drawerIcon: ({color}) => (
                         <EntypoIcons name='shop' size={22} color={color} />
-                    )
+                    ),
                 }}
             />
             <Drawer.Screen 
                 name='Tags'
-                component={Home}
+                component={TagsNavigation}
                 options={{
                     drawerLabel: 'Etiquetas',
                     drawerIcon: ({color}) => (

@@ -1,5 +1,4 @@
 import { StyleSheet, Dimensions, Text, View, ScrollView } from 'react-native';
-import useAuth from '../hooks/useAuth';
 
 import {
   PieChart,
@@ -79,17 +78,15 @@ const chartConfig = {
 };
 
 //Components
-import Wrapper from '../components/Wrapper';
+import Wrapper from '../../components/Wrapper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const Home = () => {
-  const { auth } = useAuth();
+const Statistics = () => {
   return (
     <Wrapper>
       <ScrollView style={styles.container}>
         <SafeAreaView>
-          <Text style={styles.title}>Bienvenido(a) {auth?.user?.userName}</Text>
-          <Text style={styles.subtitle}>Estadísticas</Text>
+          <Text style={styles.subtitle}>Estadísticas del producto XYZ</Text>
           <View style={styles.chartContainer}>
             <PieChart
               data={data}
@@ -126,7 +123,7 @@ const Home = () => {
   )
 }
 
-export default Home;
+export default Statistics;
 
 const styles = StyleSheet.create({
   container:{
