@@ -1,31 +1,73 @@
-import { StyleSheet, Text, View, SafeAreaView, Image, TextInput, Pressable, ActivityIndicator, Button, FlatList } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, ScrollView, Pressable, ActivityIndicator, Button, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
+
+import axios from '../../api/axios';
+const listTagsURL = '/tags/listTags';
+
+import Wrapper from '../../components/Wrapper';
+import TagResult from '../../components/TagResult';
 
 const ViewTags = () => {
-
     const navigation = useNavigation();
+    const  [Listtags, setListTags] = useState(null);
+   
 
-    const goTotags = () => {
-        navigation.navigate('NewTags');
+    const showtags = async () => {
+        try {
+            const resplistTags = await axios.get(listTagsURL);
+            setListTags(resplistTags.data.tags);
+            
+        } catch (error){
+        console.log(error);
+
+        }
     }
 
+    useEffect(async () => {
+        await showtags();
+        }, []);
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.formContainer}>
-                <View style={styles.containerTitles}>
-                    <Text style={styles.title}>Lista de Categorias</Text>
-                </View>
+        <Wrapper>
+            <ScrollView contentContainerStyle={{paddingVertical: 32, paddingHorizontal: 16}}>      
+             <SafeAreaView> 
+            <View style={{flex: 1}}>
+            {
+                Listtags ? (
+                    <>
+                 {   
+                Listtags.map((tag) => {
+                    return (
+                <TagResult
+                key ={tag.tagId}
+                tagId ={tag.tagId}
+                Name = {tag.tagName}
+                desc = {tag.tagDescription}
+                discount = {tag.discount}
+                />
+                    );
+            })
+        }
+        </>
+        ) : (
+            <ActivityIndicator />
+          )
+        }
+            </View>
 
-                <FlatList/>
-                <Pressable style={styles.btn} onPress={goTotags}>
-                    <Text style={styles.btnText} >Nueva Tag</Text>
+            <Pressable
+                    style={styles.btn}
+                    onPress={() => navigation.navigate('NewTags')}>
+                
+                    <Text style={styles.btnText} >Nueva Categoria</Text>
                 </Pressable>
 
-            </View>
-        </SafeAreaView>
+            </SafeAreaView>
+            </ScrollView>
+        </Wrapper>
+        
     )
 }
 
@@ -33,47 +75,21 @@ export default ViewTags;
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        justifyContent: 'center'
-    },
-    formContainer: {
         width: '100%',
-        marginVertical: 16,
-        paddingHorizontal: '10%',
-        justifyContent: 'center'
-        
-    },
-    containerRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    containerTitles: {
-        borderBottomColor: '#BFA658',
-        borderBottomWidth: 2,
-        marginBottom: 20
-    },
-    title: {
-        fontSize: 24,
-        marginVertical: 15,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ababab',
-        marginBottom: 24,
-        height: 52,
-        width: '100%',
+        height: 240,
         borderRadius: 12,
-        paddingLeft: 12,
-        fontSize: 18,
+        backgroundColor: '#fff',
+        paddingVertical: 32,
+        paddingHorizontal: 24,
+        marginVertical: 15
     },
     btn: {
         backgroundColor: '#BFA658',
         fontSize: 24,
         height: 60,
-        width: '100%',
+        width: '80%',
         justifyContent: 'center',
-        borderRadius: 12,
+        borderRadius: 20,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
@@ -81,19 +97,12 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 4,
-        marginBottom:30
+        marginVertical: 20,
+        marginHorizontal: 40
     },
     btnText: {
         color: '#fff',
         textAlign: 'center',
         fontSize: 24,
     },
-    
-    flatListContentContainer: {
-        paddingHorizontal: 5,
-        marginTop: Platform.OS === 'android' ? 30 : 0,
-      
-    }
-
-
 });

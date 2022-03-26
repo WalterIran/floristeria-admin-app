@@ -1,12 +1,10 @@
 import { StyleSheet, Text, View, SafeAreaView, Image, TextInput, Pressable, ActivityIndicator, Button } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useFormik } from 'formik';
 import IonIcons from 'react-native-vector-icons/Ionicons';
 
 const EditTags = () => {
-  const [isPickerShow, setIsPickerShow] = useState(false);
+  const [ isPickerShown, setIsPickerShown ] = useState(false);
 
   const dateChange = (e, value) => {
     if (Platform.OS === 'android') {
@@ -35,30 +33,31 @@ const EditTags = () => {
           autoCapitalize='none'
         />
 
-        <View style={{ width: '100%', borderWidth: 1, borderColor: '#ababab', borderRadius: 16, padding: 16, marginBottom: 24 }}>
-          <Text style={{ fontSize: 22, color: '#ababab', padding: 7 }}>Expiracion de Descuento</Text>
-          {
-            (!isPickerShow && Platform.OS === 'android') && (
-              <Button title='Seleccionar fecha' color='#BFA658' onPress={() => setIsPickerShow(true)} />
-            )
-          }
+<View style={{width: '100%', borderWidth: 1, borderColor: '#ababab', borderRadius: 16, padding: 16, marginBottom: 24}}>
+                <Text style={{fontSize: 24, color: '#ababab'}}>Expiración del descuento</Text>
+                {
+                (!isPickerShown && Platform.OS === 'android') && (
+                    <Button title='Seleccionar fecha' color='#BFA658' onPress={() => setIsPickerShown(true)}/>
+                )
+                }
 
-          {
-            (isPickerShow || Platform.OS === 'ios') && (
-              <DateTimePicker
-                testID="birthDate"
-               
-                style={{ width: '100%' }}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                maximumDate={Date.parse(new Date())}
-                minimumDate={Date.parse(new Date(1930, 0, 1))}
-                timeZoneOffsetInMinutes={60}
-                onChange={dateChange}
-              />
-            )
-          }
-        </View>
+                {
+                (isPickerShown || Platform.OS === 'ios') && (
+                    <DateTimePicker
+                        testID="discountExpiration"
+                        style={{width: '100%'}}
+                        mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
+                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        maximumDate={Date.parse(new Date())}
+                        minimumDate={Date.parse(new Date(1930, 0, 1))}
+                        timeZoneOffsetInMinutes={60}
+                        value={new Date()}
+                        //value={formik.values.}
+                        // onChange={dateChange}
+                    />
+                )
+                }
+            </View>
 
         <Pressable
           style={styles.btn}
@@ -82,9 +81,10 @@ const styles = StyleSheet.create({
   formContainer: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 30,
-    paddingHorizontal: '10%'
-  },
+    paddingVertical: 30,
+    paddingHorizontal: '7%',
+    backgroundColor: "#fff",
+},
   input: {
     borderWidth: 1,
     borderColor: '#ababab',
