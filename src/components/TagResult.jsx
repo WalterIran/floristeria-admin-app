@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View, SafeAreaView, ScrollView, Pressable, ActivityIndicator, Button, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useState, useEffect } from 'react';
 import { formatter } from '../utils/formatter';
 
 const TagResult = ({ Name, desc, discount, tagId }) => {
@@ -20,12 +19,12 @@ const TagResult = ({ Name, desc, discount, tagId }) => {
         
         <View style={[styles.container, styles.shadow]}>
             <View style={styles.section}>
-                <Text style={styles.employeeID}>{Name}</Text>
+                <Text style={styles.TagNombre}>{Name}</Text>
                 <Text style={styles.text}>{desc}</Text>
                 <View style={styles.line}></View>
                 <Text>
                     <Text style={[styles.text]}>Descuento: </Text>
-                    <Text style={[styles.precio, styles.text]}>{formatter.format(discount)}</Text>
+                    <Text style={[priceStyle, styles.text]}>{formatter.format(discount)}</Text>
                 </Text>
             </View>
             <Pressable
@@ -65,7 +64,7 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 5,
     },
-    employeeID: {
+    TagNombre: {
         fontSize: 22,
         fontWeight: '700'
     },

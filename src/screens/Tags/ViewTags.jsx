@@ -11,17 +11,16 @@ import TagResult from '../../components/TagResult';
 
 const ViewTags = () => {
     const navigation = useNavigation();
-    const  [Listtags, setListTags] = useState(null);
+    const  [tags, settags] = useState([]);
+    const [loading,setLoading] = useState(false);
    
 
     const showtags = async () => {
         try {
-            const resplistTags = await axios.get(listTagsURL);
-            setListTags(resplistTags.data.tags);
-            
+         const resplistTags = await axios.get(listTagsURL);
+            settags(resplistTags.data.tags);
         } catch (error){
         console.log(error);
-
         }
     }
 
@@ -34,11 +33,8 @@ const ViewTags = () => {
             <ScrollView contentContainerStyle={{paddingVertical: 32, paddingHorizontal: 16}}>      
              <SafeAreaView> 
             <View style={{flex: 1}}>
-            {
-                Listtags ? (
-                    <>
-                 {   
-                Listtags.map((tag) => {
+            {   
+                tags.map((tag) => {
                     return (
                 <TagResult
                 key ={tag.tagId}
@@ -47,13 +43,8 @@ const ViewTags = () => {
                 desc = {tag.tagDescription}
                 discount = {tag.discount}
                 />
-                    );
+                );
             })
-        }
-        </>
-        ) : (
-            <ActivityIndicator />
-          )
         }
             </View>
 
