@@ -9,22 +9,18 @@ const TagResult = ({ Name, desc, discount, tagId }) => {
         navigation.navigate(screen, { tagId })
     }
 
-    const priceStyle = {
-        fontWeight: '700',
-        color: discount > 0 ? '#aaa' : '#333',
-        textDecorationLine: discount > 0 ? 'line-through' : 'none'
-    }
+    
 
     return (
         
         <View style={[styles.container, styles.shadow]}>
             <View style={styles.section}>
-                <Text style={styles.TagNombre}>{Name}</Text>
-                <Text style={styles.text}>{desc}</Text>
+                <Text style={styles.TagNombre}>Categoria: {Name}</Text>
+                <Text style={styles.text}>Descripcion: {desc}</Text>
                 <View style={styles.line}></View>
                 <Text>
                     <Text style={[styles.text]}>Descuento: </Text>
-                    <Text style={[priceStyle, styles.text]}>{formatter.format(discount)}</Text>
+                    <Text style={[styles.precio, styles.text]}>{formatter.format(discount)}</Text>
                 </Text>
             </View>
             <Pressable

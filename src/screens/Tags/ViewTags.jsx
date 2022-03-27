@@ -11,54 +11,58 @@ import TagResult from '../../components/TagResult';
 
 const ViewTags = () => {
     const navigation = useNavigation();
-    const  [tags, settags] = useState([]);
-    const [loading,setLoading] = useState(false);
-   
+    const [tags, setTags] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    
 
     const showtags = async () => {
         try {
-         const resplistTags = await axios.get(listTagsURL);
-            settags(resplistTags.data.tags);
-        } catch (error){
-        console.log(error);
+            const resplistTags = await axios.get(listTagsURL);
+            setTags(resplistTags.data);
+            //console.log(resplistTags.data[0].tagName);
+            console.log(tags[0]);
+        } catch (error) {
+            console.log(error);
         }
     }
 
     useEffect(async () => {
         await showtags();
-        }, []);
+    }, []);
 
     return (
         <Wrapper>
-            <ScrollView contentContainerStyle={{paddingVertical: 32, paddingHorizontal: 16}}>      
-             <SafeAreaView> 
-            <View style={{flex: 1}}>
-            {   
-                tags.map((tag) => {
-                    return (
-                <TagResult
-                key ={tag.tagId}
-                tagId ={tag.tagId}
-                Name = {tag.tagName}
-                desc = {tag.tagDescription}
-                discount = {tag.discount}
-                />
-                );
-            })
-        }
-            </View>
+            <ScrollView contentContainerStyle={{ paddingVertical: 32, paddingHorizontal: 16 }}>
+                <SafeAreaView>
 
-            <Pressable
-                    style={styles.btn}
-                    onPress={() => navigation.navigate('NewTags')}>
-                
-                    <Text style={styles.btnText} >Nueva Categoria</Text>
-                </Pressable>
+                    <View style={{ flex: 1 }}>
+                        {
+                            tags.map((tag, index) => {
+                                return (
+                                    <TagResult
+                                        key={tag.tagId}
+                                        tagId={tag.tagId}
+                                        Name={tag.tagName}
+                                        desc={tag.tagDescription}
+                                        discount={tag.discount}
+                                    />
+                                );
+                            })
+                        }
+                    </View>
 
-            </SafeAreaView>
+                    <Pressable
+                        style={styles.btn}
+                        onPress={() => navigation.navigate('NewTags')}>
+
+                        <Text style={styles.btnText} >Nueva Categoria</Text>
+                    </Pressable>
+
+                </SafeAreaView>
             </ScrollView>
         </Wrapper>
-        
+
     )
 }
 
