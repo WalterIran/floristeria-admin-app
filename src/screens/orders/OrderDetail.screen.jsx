@@ -73,12 +73,21 @@ const OrderDetail = ({route}) => {
     }
   }
 
+  const clearStatus = () =>{
+    for(let i = 0; i < orderStatus.length; i++){
+      const newArr = orderStatus;
+      newArr[i].status = 'none';
+      setOrderStatus(newArr);
+    }
+  }
+
   useEffect(() => {
     ( async () => {
       try {
         const response = await axiosPrivate.get(`/orders/order-detail/${billId}`);
         const resOrderStatus = response.data.result.orderStatus;
-        
+        clearStatus();
+
         for(let i = 0; i < orderStatus.length; i++) {
           if(resOrderStatus === 'canceled') {
             break;
