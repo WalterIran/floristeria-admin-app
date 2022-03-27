@@ -43,7 +43,7 @@ const ViewTags = () => {
                                     <TagResult
                                         key={tag.tagId}
                                         tagId={tag.tagId}
-                                        Name={tag.tagName}
+                                        tagName={tag.tagName}
                                         desc={tag.tagDescription}
                                         discount={tag.discount}
                                     />

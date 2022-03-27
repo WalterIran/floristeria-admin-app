@@ -1,12 +1,14 @@
 import { StyleSheet, Text, View, SafeAreaView, ScrollView, Pressable, ActivityIndicator, Button, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { formatter } from '../utils/formatter';
+import React from 'react'
 
-const TagResult = ({ Name, desc, discount, tagId }) => {
+const TagResult = ({ tagName, desc, discount, tagId }) => {
     const navigation = useNavigation();
 
-    const goTo = (screen) => {
-        navigation.navigate(screen, { tagId })
+
+    const goToEdit =(id) => {
+        navigation.navigate('EditTags', {tagId});
     }
 
     
@@ -15,7 +17,7 @@ const TagResult = ({ Name, desc, discount, tagId }) => {
         
         <View style={[styles.container, styles.shadow]}>
             <View style={styles.section}>
-                <Text style={styles.TagNombre}>Categoria: {Name}</Text>
+                <Text style={styles.TagNombre}>Categoria: {tagName}</Text>
                 <Text style={styles.text}>Descripcion: {desc}</Text>
                 <View style={styles.line}></View>
                 <Text>
@@ -25,7 +27,7 @@ const TagResult = ({ Name, desc, discount, tagId }) => {
             </View>
             <Pressable
                 style={styles.btnEdit}
-                onPress={() => goTo('EditTags')}
+                onPress={() => goToEdit(tagId)}
             >
                 <Text style={styles.btnEditText} >Editar</Text>
             </Pressable>
