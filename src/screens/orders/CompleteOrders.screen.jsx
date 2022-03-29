@@ -31,7 +31,6 @@ const CompleteOrdersScreen = () => {
     setRefreshing(true);
     PAGE=1;
     loadOrders();
-    wait(2000).then(() => setRefreshing(false));
   }, []);
 
   useEffect(() => {
@@ -52,6 +51,8 @@ const CompleteOrdersScreen = () => {
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      setRefreshing(false)
     }
   }
   

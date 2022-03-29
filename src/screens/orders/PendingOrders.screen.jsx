@@ -31,7 +31,6 @@ const PendingOrdersScreen = () => {
     setRefreshing(true);
     PAGE=1;
     loadOrders();
-    wait(2000).then(() => setRefreshing(false));
   }, []);
 
   useEffect(() => {
@@ -52,6 +51,8 @@ const PendingOrdersScreen = () => {
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      setRefreshing(false);
     }
   }
   
