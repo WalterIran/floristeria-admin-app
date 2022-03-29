@@ -5,8 +5,9 @@ const Stack = createNativeStackNavigator();
 
 //Screens
 import ProductList from "../screens/products/ProductList";
-import Product from "../screens/products/Product";
 import Statistics from "../screens/products/Statistics";
+import NewProduct from "../screens/products/NewProduct";
+import EditProduct from "../screens/products/EditProduct";
 
 const ProductsNavigation = () => {
     return (
@@ -23,14 +24,14 @@ const ProductsNavigation = () => {
             />
             <Stack.Screen 
                 name="NewProduct"
-                component={Product}
+                component={NewProduct}
                 options={{
                     headerTitle: "Nuevo Producto"
                 }}
             />
             <Stack.Screen 
                 name="EditProduct"
-                component={Product}
+                component={EditProduct}
                 options={{
                     headerTitle: "Editar Producto"
                 }}

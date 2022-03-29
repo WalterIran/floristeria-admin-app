@@ -1,15 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, Pressable, Image, ScrollView, Platform, Button, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import SelectBox from 'react-native-multi-selectbox';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import axios from 'axios';
-import { API_URL } from '@env';
-
-import useAxiosPrivate from '../../hooks/useAxiosPrivate';
-import useAuth from '../../hooks/useAuth';
 
 //Icons
 import IonIcons from 'react-native-vector-icons/Ionicons';
@@ -21,16 +14,10 @@ import Wrapper from '../../components/Wrapper';
 import CustomButton from '../../components/CustomButton';
 import Errors from '../../components/Errors';
 
-const Product = () => {
-    const [ image, setImage ] = useState(null);
-    const [ tagOptions, setTagOptions] = useState([]);
-    const [selectedTags, setSelectedTags] = useState([]);
+const Product = ({formik, image, setImage, loading, tagOptions, selectedTags, onMultiChange}) => {
     const [ isPickerShown, setIsPickerShown ] = useState(false);
     const [errors, setErrors] = useState({});
-    const [loading, setLoading] = useState(false);
-    const { auth } = useAuth();
 
-    const axiosPrivate = useAxiosPrivate();
     const [status, requestPermission] = ImagePicker.useCameraPermissions();
 
     const dateChange = (e, value) => {
@@ -39,85 +26,6 @@ const Product = () => {
         }
         formik.setFieldValue('discountExpirationDate', value);
     }
-
-    const initialValues = {
-        productName: '', 
-        productDescriptionTitle: '', 
-        productDescription: '',
-        price: 0.00, 
-        discount: 0.00, 
-        discountExpirationDate: new Date()
-    }
-
-    const formik = useFormik({
-        initialValues: initialValues,
-        validationSchema: Yup.object(validationSchema),
-        onSubmit: async (formValues) => {
-            setLoading(true);
-            try {
-                if(!image){
-                    setErrors({Imagen: 'Debe seleccionar una imagen de su galería'});
-                    return;
-                }
-                const formData = new FormData();
-                const keys = Object.keys(formValues).filter(key => formValues[key] !== '');
-                
-                keys.forEach(key => {
-                    formData.append(key, formValues[key].toString());
-                });
-                
-                formData.append('productImage',{
-                    name: new Date() + '_prodImg',
-                    uri: image.uri,
-                    type: image.type+`/${image.uri.split('.')[1]}`
-                });
-
-                let tagIdArr = selectedTags.map((tag) =>  tag.id);
-                formData.append('tagIds', JSON.stringify(tagIdArr));
-
-                const result = await axios.post(
-                    `${API_URL}/api/v1/products/create`,
-                    formData,
-                    {
-                        headers: {
-                            Accept: 'application/json',
-                            'Content-Type': 'multipart/form-data',
-                            authorization: `Bearer ${auth?.accessToken}`
-                        },
-                        transformRequest: (data, headers) => {
-                            return formData;
-                        }
-                    }
-                );
-                console.log(result);
-            } catch (error) {
-                console.log(error);
-            }finally{
-                setLoading(false);
-            }
-        }
-    });
-
-    const getTags = async () => {
-        try {
-            const result = await axiosPrivate.get('/tags/listtags');
-            const tags = result.data;
-            const opts = tags.map(tag => {
-                return {
-                    item: tag.tagName,
-                    id: tag.tagId
-                }
-            });
-            setTagOptions(opts);
-        } catch (error) {
-            alert('Algo salió mal, intenta de nuevo más tarde');
-        }
-    }
-
-    useEffect(() => {
-      getTags();
-    }, []);
-    
 
     const chooseImg = async (opt) => {
         try {
@@ -136,20 +44,6 @@ const Product = () => {
         } catch (error) {
             console.log(error);
         }
-    }
-
-    function onMultiChange(item) {
-        const index = selectedTags.map(tag => tag.id).indexOf(item.id);
-
-        const tempArr = selectedTags;
-        
-        if(index > -1){
-            tempArr.splice(index, 1);
-        }else{
-            tempArr.push(item);
-        }
-
-        setSelectedTags([...tempArr]);
     }
 
     return (
@@ -269,15 +163,6 @@ const Product = () => {
 }
 
 export default Product;
-
-const validationSchema = {
-    productName: Yup.string().required('Campo requerido'), 
-    productDescriptionTitle: Yup.string().required('Campo requerido'), 
-    productDescription: Yup.string().required('Campo requerido'),
-    price: Yup.number('Campo debe ser un número').required('Campo requerido'), 
-    discount: Yup.number('Campo debe ser un número'), 
-    discountExpirationDate: Yup.string()
-}
 
 const styles = StyleSheet.create({
     formContainer: {
