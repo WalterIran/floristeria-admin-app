@@ -37,7 +37,6 @@ const ProductList = () => {
             setProducts(respNewest.data.products);
         } catch (error) {
             console.log(error);
-
         }
     }
 
@@ -73,6 +72,7 @@ const ProductList = () => {
                                 desc={product.productDescriptionTitle}
                                 price={product.price}
                                 discount={defineDiscount(product.price, product.discount, product.discountExpirationDate, product.product_tag)}
+                                onPress={() => navigation.navigate('EditProduct', {prodId: product.id})}
                             />
                             );
                         })

@@ -4,7 +4,7 @@ import { formatter } from '../utils/formatter';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const ProductResult = ({img, title, desc, price, productId, discount}) => {
+const ProductResult = ({img, title, desc, price, productId, discount, onPress}) => {
     const navigation = useNavigation();
 
     const goTo = (screen) => {
@@ -18,7 +18,7 @@ const ProductResult = ({img, title, desc, price, productId, discount}) => {
     }
 
   return (
-      <TouchableOpacity style={{width: '100%'}}>
+      <TouchableOpacity style={{width: '100%'}} onPress={onPress}>
         <View style={styles.productContainer}>
             <View style={styles.imgContainer}>
                 <Image source={{uri: img}} style={styles.img} />

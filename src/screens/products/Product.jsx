@@ -1,28 +1,15 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Pressable, Image, ScrollView, Platform, Button } from 'react-native';
-
+import { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TextInput, Pressable, Image, ScrollView, Platform, Button, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import SelectBox from 'react-native-multi-selectbox';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import axios from 'axios';
+import { API_URL } from '@env';
 
-const PROV_OPTS = [
-    {
-        item: "San Valentín",
-        id: 1
-    },
-    {
-        item: "Cumpleaños",
-        id: 2
-    },
-    {
-        item: "Boda",
-        id: 3
-    },
-    {
-        item: "Día de la madre",
-        id: 4
-    },
-]
+import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+import useAuth from '../../hooks/useAuth';
 
 //Icons
 import IonIcons from 'react-native-vector-icons/Ionicons';
@@ -32,19 +19,117 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 //Components
 import Wrapper from '../../components/Wrapper';
 import CustomButton from '../../components/CustomButton';
+import Errors from '../../components/Errors';
 
 const Product = () => {
-    const [status, requestPermission] = ImagePicker.useCameraPermissions();
     const [ image, setImage ] = useState(null);
+    const [ tagOptions, setTagOptions] = useState([]);
     const [selectedTags, setSelectedTags] = useState([]);
     const [ isPickerShown, setIsPickerShown ] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(false);
+    const { auth } = useAuth();
+
+    const axiosPrivate = useAxiosPrivate();
+    const [status, requestPermission] = ImagePicker.useCameraPermissions();
+
+    const dateChange = (e, value) => {
+        if(Platform.OS === 'android'){
+          setIsPickerShow(false);
+        }
+        formik.setFieldValue('discountExpirationDate', value);
+    }
+
+    const initialValues = {
+        productName: '', 
+        productDescriptionTitle: '', 
+        productDescription: '',
+        price: 0.00, 
+        discount: 0.00, 
+        discountExpirationDate: new Date()
+    }
+
+    const formik = useFormik({
+        initialValues: initialValues,
+        validationSchema: Yup.object(validationSchema),
+        onSubmit: async (formValues) => {
+            setLoading(true);
+            try {
+                if(!image){
+                    setErrors({Imagen: 'Debe seleccionar una imagen de su galería'});
+                    return;
+                }
+                const formData = new FormData();
+                const keys = Object.keys(formValues).filter(key => formValues[key] !== '');
+                
+                keys.forEach(key => {
+                    formData.append(key, formValues[key].toString());
+                });
+                
+                formData.append('productImage',{
+                    name: new Date() + '_prodImg',
+                    uri: image.uri,
+                    type: image.type+`/${image.uri.split('.')[1]}`
+                });
+
+                let tagIdArr = selectedTags.map((tag) =>  tag.id);
+                formData.append('tagIds', JSON.stringify(tagIdArr));
+
+                const result = await axios.post(
+                    `${API_URL}/api/v1/products/create`,
+                    formData,
+                    {
+                        headers: {
+                            Accept: 'application/json',
+                            'Content-Type': 'multipart/form-data',
+                            authorization: `Bearer ${auth?.accessToken}`
+                        },
+                        transformRequest: (data, headers) => {
+                            return formData;
+                        }
+                    }
+                );
+                console.log(result);
+            } catch (error) {
+                console.log(error);
+            }finally{
+                setLoading(false);
+            }
+        }
+    });
+
+    const getTags = async () => {
+        try {
+            const result = await axiosPrivate.get('/tags/listtags');
+            const tags = result.data;
+            const opts = tags.map(tag => {
+                return {
+                    item: tag.tagName,
+                    id: tag.tagId
+                }
+            });
+            setTagOptions(opts);
+        } catch (error) {
+            alert('Algo salió mal, intenta de nuevo más tarde');
+        }
+    }
+
+    useEffect(() => {
+      getTags();
+    }, []);
+    
 
     const chooseImg = async (opt) => {
         try {
             await requestPermission();
             if(status.status === 'granted'){
                 const result = opt === 'gallery' ? await ImagePicker.launchImageLibraryAsync() : await ImagePicker.launchCameraAsync();
-                setImage(result);
+                if(!result.cancelled){
+                    setImage(result);
+                    const tempErr = errors;
+                    delete tempErr['Imagen'];
+                    setErrors({...tempErr})
+                }
             }else{
                 alert("Necesitas brindar permisos a la cámara");
             }
@@ -52,13 +137,24 @@ const Product = () => {
             console.log(error);
         }
     }
-    // function onMultiChange() {
-    //     return (item) => setSelectedTags(xorBy(selectedTeams, [item], 'id'))
-    // }
+
+    function onMultiChange(item) {
+        const index = selectedTags.map(tag => tag.id).indexOf(item.id);
+
+        const tempArr = selectedTags;
+        
+        if(index > -1){
+            tempArr.splice(index, 1);
+        }else{
+            tempArr.push(item);
+        }
+
+        setSelectedTags([...tempArr]);
+    }
 
     return (
     <Wrapper>
-        <ScrollView contentContainerStyle={styles.formContainer}>
+        <ScrollView contentContainerStyle={styles.formContainer} nestedScrollEnabled={true}>
             <View style={styles.imgContainer}>
                 {
                     image ? (
@@ -95,33 +191,34 @@ const Product = () => {
             <TextInput
                 style={styles.input}
                 placeholder='Nombre del producto'
-                // value={formik.values.}
-                // onChangeText={(text) => formik.setFieldValue('', text)}
+                value={formik.values.productName}
+                onChangeText={(text) => formik.setFieldValue('productName', text)}
             />
             <TextInput
                 style={styles.input}
                 placeholder='Precio'
-                // value={formik.values.}
-                // onChangeText={(text) => formik.setFieldValue('', text)}
+                keyboardType='numeric'
+                value={formik.values.price}
+                onChangeText={(text) => formik.setFieldValue('price', text)}
             />
             <TextInput
                 style={styles.input}
                 placeholder='Título de descripción'
-                // value={formik.values.}
-                // onChangeText={(text) => formik.setFieldValue('', text)}
+                value={formik.values.productDescriptionTitle}
+                onChangeText={(text) => formik.setFieldValue('productDescriptionTitle', text)}
             />
             <TextInput
                 style={[styles.input, styles.multiline]} 
                 placeholder='Descripción' 
                 multiline 
-                // value={formik.values.}
-                // onChangeText={(text) => formik.setFieldValue('', text)}
+                value={formik.values.productDescription}
+                onChangeText={(text) => formik.setFieldValue('productDescription', text)}
             />
             <TextInput
                 style={styles.input}
                 placeholder='Descuento'
-                // value={formik.values.}
-                // onChangeText={(text) => formik.setFieldValue('', text)}
+                value={formik.values.discount}
+                onChangeText={(text) => formik.setFieldValue('discount', text)}
             />
             <View style={{width: '100%', borderWidth: 1, borderColor: '#ababab', borderRadius: 16, padding: 16, marginBottom: 24}}>
                 <Text style={{fontSize: 24, color: '#ababab'}}>Expiración del descuento</Text>
@@ -134,28 +231,37 @@ const Product = () => {
                 {
                 (isPickerShown || Platform.OS === 'ios') && (
                     <DateTimePicker
-                        testID="discountExpiration"
+                        testID="discountExpirationDate"
                         style={{width: '100%'}}
                         mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
                         display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                        maximumDate={Date.parse(new Date())}
-                        minimumDate={Date.parse(new Date(1930, 0, 1))}
+                        minimumDate={Date.parse(new Date())}
                         timeZoneOffsetInMinutes={60}
-                        value={new Date()}
-                        //value={formik.values.}
-                        // onChange={dateChange}
+                        value={formik.values.discountExpirationDate}
+                        onChange={dateChange}
                     />
                 )
                 }
             </View>
-            <SelectBox
-                label="Seleccione las etiquetas"
-                options={PROV_OPTS}
-                selectedValues={selectedTags}
-                isMulti
-            />
+            <ScrollView
+                contentContainerStyle={{width: '100%'}}
+                horizontal={true}
+            >
+                <SelectBox
+                    label="Seleccione las etiquetas"
+                    options={tagOptions}
+                    selectedValues={selectedTags}
+                    onMultiSelect={onMultiChange}
+                    onTapClose={onMultiChange}
+                    isMulti
+                />
+            </ScrollView>
+            <Errors errors={formik.errors} title='Errores de campos' />
+            <Errors errors={errors} title='Mensajes del servidor' />
             <View style={{marginTop: 24, width: '100%'}}>
-                <CustomButton text={"Guardar"} />
+                <CustomButton text={"Guardar"} onPress={formik.handleSubmit}>
+                    {loading && <ActivityIndicator />}
+                </ CustomButton>
             </View>
         </ScrollView>
     </Wrapper>
@@ -163,6 +269,15 @@ const Product = () => {
 }
 
 export default Product;
+
+const validationSchema = {
+    productName: Yup.string().required('Campo requerido'), 
+    productDescriptionTitle: Yup.string().required('Campo requerido'), 
+    productDescription: Yup.string().required('Campo requerido'),
+    price: Yup.number('Campo debe ser un número').required('Campo requerido'), 
+    discount: Yup.number('Campo debe ser un número'), 
+    discountExpirationDate: Yup.string()
+}
 
 const styles = StyleSheet.create({
     formContainer: {
