@@ -66,7 +66,7 @@ const OrderDetail = ({route}) => {
           console.log(err);
           Alert.alert("Error", "Error al modificar el estado");
       });
-    } 
+    }
     catch (error) {
       console.log(error);
       Alert.alert("Error", "Ocurrio un error al modificar el estado de la orden");

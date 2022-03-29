@@ -6,6 +6,7 @@ import useAuth from '../hooks/useAuth';
 import Home from '../screens/Home';
 import OrderNavigation from '../navigation/OrdersNavigation';
 import ProductsNavigation from './ProductsNavigation';
+import UserNavigation from './UserNavigation';
 
 import TagsNavigation from './TagsNavigation';
 //Icons
@@ -46,7 +47,7 @@ const DrawerNavigation = () => {
             />
             <Drawer.Screen 
                 name='Profile'
-                component={Home}
+                component={UserNavigation}
                 options={{
                     drawerLabel: 'Mi Perfil',
                     drawerIcon: ({color}) => (
