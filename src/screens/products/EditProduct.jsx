@@ -42,7 +42,7 @@ const EditProduct = ({route}) => {
     const getProdDetails = async () => {
         try {
             const result = await axiosPrivate.get('/products/byid/'+productId);
-            product = result.data.product;
+            const product = result.data.product;
             const newInitialValues = {
                 productName: product.productName, 
                 productDescriptionTitle: product.productDescriptionTitle, 

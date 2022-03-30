@@ -1,60 +1,14 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet, Dimensions, Text, View, ScrollView } from 'react-native';
 import useAuth from '../hooks/useAuth';
+import axios from '../api/axios';
+import useAxiosPrivate from '../hooks/useAxiosPrivate';
 
 import {
   PieChart,
   LineChart,
   BarChart
 } from "react-native-chart-kit";
-const data = [
-  {
-    name: "Seoul",
-    population: 21500000,
-    color: "rgba(131, 167, 234, 1)",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15
-  },
-  {
-    name: "Toronto",
-    population: 2800000,
-    color: "#F00",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15
-  },
-  {
-    name: "Beijing",
-    population: 527612,
-    color: "red",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15
-  },
-  {
-    name: "New York",
-    population: 8538000,
-    color: "#ffff00",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15
-  },
-  {
-    name: "Moscow",
-    population: 11920000,
-    color: "rgb(0, 0, 255)",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15
-  }
-];
-
-const data2 = {
-  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-  datasets: [
-    {
-      data: [20, 45, 28, 80, 99, 43],
-      color: (opacity = 1) => `rgba(0, 140, 255, ${opacity})`, // optional
-      strokeWidth: 2 // optional
-    }
-  ],
-  legend: ["Rainy Days"] // optional
-};
 
 const data3 = {
   labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
@@ -84,6 +38,109 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Home = () => {
   const { auth } = useAuth();
+  const [ topTags, setTopTags] = useState([]);
+  const [customerGrowth, setCustomerGrowth] = useState(null);
+  const [sells, setSells] = useState(null);
+  const axiosPrivate = useAxiosPrivate();
+
+  function changeHex() {
+    const hexValues = [0,1,2,3,4,5,6,7,8,9,'A','B','C','D','E','F']; 
+    let hex = '#';
+  
+    for(let i = 0; i < 6; i++){
+      const index = Math.floor(Math.random() * hexValues.length)
+      hex += hexValues[index];
+    }
+  
+    return hex;
+  }
+
+  const getTopTags = async () => {
+    try {
+      const res = await axios.get('/tags/top-sold');
+      const tagArr = res.data.tags.map(tag => {
+        const randomColor = Math.floor(Math.random()*16777215).toString(16);
+        return {
+          name: tag.tag_name,
+          sells: tag.sells,
+          color: changeHex(),
+          legendFontColor: "#7F7F7F",
+          legendFontSize: 15
+        }
+      });
+
+      setTopTags(tagArr);
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const getCustomerGrowth = async () => {
+    try {
+      const res = await axios.get('/users/customers-growth');
+      const arr = res.data.months;
+      const labels = arr.map(item => {
+        return item.month;
+      });
+      const data = arr.map(item => {
+        return item.total;
+      });
+
+      setCustomerGrowth({
+        labels: labels,
+        datasets: [
+          {
+            data: data,
+            color: (opacity = 1) => `rgba(0, 140, 255, ${opacity})`, // optional
+            strokeWidth: 2 // optional
+          }
+        ],
+        legend: ["Nuevos usuarios"] // optional
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const getSells = async () => {
+    try {
+      const res = await axiosPrivate.get('/orders/sells');
+      const arr = res.data.sells;
+      const labels = arr.map(item => {
+        return item.month;
+      });
+      const data = arr.map(item => {
+        return item.sells;
+      });
+
+      setSells({
+        labels,
+        datasets: [
+          {
+            data
+          }
+        ]
+      })
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    
+    (async () => {
+      await getTopTags();
+      await getCustomerGrowth();
+      await getSells();
+    })();
+  
+    return () => {
+      setTopTags([]);
+    }
+  }, [])
+  
+
   return (
     <Wrapper>
       <ScrollView style={styles.container}>
@@ -91,34 +148,42 @@ const Home = () => {
           <Text style={styles.title}>Bienvenido(a) {auth?.user?.userName}</Text>
           <Text style={styles.subtitle}>Estadísticas</Text>
           <View style={styles.chartContainer}>
+            <Text style={styles.subtitle}>Categorías más vendidas</Text>
             <PieChart
-              data={data}
+              data={topTags}
               width={(screenWidth - 36)}
               height={220}
               chartConfig={chartConfig}
-              accessor={"population"}
+              accessor={"sells"}
               backgroundColor={"transparent"}
             />
           </View>
           <View style={styles.chartContainer}>
-            <LineChart
-              data={data2}
-              width={(screenWidth - 36)}
-              height={220}
-              verticalLabelRotation={30}
-              chartConfig={chartConfig}
-              bezier
-            />
+            {
+              customerGrowth && 
+              <LineChart
+                data={customerGrowth}
+                width={(screenWidth - 36)}
+                height={220}
+                verticalLabelRotation={30}
+                chartConfig={chartConfig}
+                bezier
+                />
+              }
           </View>
           <View style={styles.chartContainer}>
-            <BarChart
-              data={data3}
-              width={(screenWidth - 36)}
-              height={220}
-              yAxisLabel="$"
-              chartConfig={chartConfig}
-              verticalLabelRotation={30}
-            />
+              <Text style={styles.subtitle}>Ventas últimos meses</Text>
+            {
+              sells &&
+              <BarChart
+                data={sells}
+                width={(screenWidth - 50)}
+                height={220}
+                yAxisLabel="$"
+                chartConfig={chartConfig}
+                verticalLabelRotation={30}
+              />
+            }
           </View>
         </SafeAreaView>
       </ScrollView>
