@@ -15,7 +15,7 @@ import Errors from '../../components/Errors';
 import * as Yup from 'yup';
 
 const USER_FIND_URL = '/users/byemployeeid/'
-const USER_UPT_URL = '/users/update-customer/';
+const USER_UPT_URL = '/users/update-employee/';
 const USER_ACT_URL = 'users/activate-user/';
 const USER_INA_URL = 'users/inactivate-user/';
 const USER_EMP_URL = 'users/role-employee/';
@@ -147,7 +147,16 @@ const EmployeeDetails = ({route}) => {
     }
     const activateUser = async ()=>{
         try {
-            const reponse = await axiosPrivate.put(USER_ACT_URL+employeeId);
+            const reponse = await axiosPrivate.put(USER_ACT_URL+employeeId)
+            .then(function (response){
+                setData(response.data);
+             })
+             .catch(function (error){
+                if(!error?.response) {
+                    setErrors({Servidor: 'Error en el servidor'})
+                }
+                console.error(error);
+             });
         } catch (error) {
             console.log(error);
         }
