@@ -6,19 +6,19 @@ import { useState,useEffect } from "react";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Picker} from '@react-native-picker/picker';
 import { CheckBox } from 'react-native-elements';
+import * as Animatable from 'react-native-animatable';
 
 //AXIOS
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import Wrapper from '../../components/Wrapper';
 import Errors from '../../components/Errors';
 import * as Yup from 'yup';
-
+import { set } from 'react-native-reanimated';
 const USER_UPT_URL = '/users/update-customer/';
 const USER_ACT_URL = 'users/activate-user/';
 const USER_INA_URL = 'users/inactivate-user/';
 const USER_EMP_URL = 'users/role-employee/';
 const USER_ADM_URL = 'users/role-admin/';
-
 function validationSchema () {
     return {
       personId: Yup.string().length(13).matches(/^[0-9]+$/, 'Identidad inválida'),
@@ -39,7 +39,7 @@ const EmployeeDetails = ({route}) => {
     const { employeeId,personId,userName,userLastname,birthDate,phoneNumber,address,userStatus,userRole } = route?.params;
     //InputText
     const [data,setData] = useState(null);
-    const [id,setId] = useState(null);
+    const [id,setId] = useState();
     const [name,setName] = useState(null);
     const [lastName,setLastName] = useState(null);
     const [phone,setPhone] = useState(null);
@@ -121,22 +121,24 @@ const EmployeeDetails = ({route}) => {
     }
     const updateEmployee = async () =>{
         try {
-            validationSchema()
+            validationSchema();
             setLoading(true);
-            const reponse = await axiosPrivate.patch(USER_UPT_URL+employeeId,
+            Role();
+            const response = await axiosPrivate.patch(USER_UPT_URL+employeeId,
                 JSON.stringify(values)
                 )
             .then(function (response){
                 setData(response.data);
+                goBack();
              })
              .catch(function (error){
                 if(!error?.response) {
-                    setErrors({Servidor: 'Error en el servidor'})
+                    setErrors({Servidor: 'Error en el servidor'});
                 }
-                console.error(error);
              });
-             Role();
-             goBack();
+             if(!response){
+                setErrors({error: 'campos erroneos.'});
+             }
              setLoading(false);
         } catch (error) {
             
@@ -156,6 +158,13 @@ const EmployeeDetails = ({route}) => {
              });
         } catch (error) {
             console.log(error);
+        }
+    }
+    const validar = (value) =>{
+        if(value === ''){
+            setErrors({error: 'campos vacios.'});
+        }else{
+            setErrors(false);
         }
     }
     const InactivateUser = async ()=>{
@@ -208,15 +217,19 @@ const EmployeeDetails = ({route}) => {
     }
     useEffect(() => {
         (async()=>{
-            await getEmployee();
-            await Status();
+            try {
+                await getEmployee();
+                await Status();
+                setDate(new Date(birthDate));
+                setId(personId);
+                setName(userName);
+                setLastName(userLastname);
+                setPhone(phoneNumber);
+                setPlace(address);
+            } catch (error) {
+                console.error(error);
+            }
         })()
-        setDate(new Date(birthDate));
-        setId(personId);
-        setName(userName);
-        setLastName(userLastname);
-        setPhone(phoneNumber);
-        setPlace(address);
     }, [])
     return( 
         <>
@@ -246,19 +259,31 @@ const EmployeeDetails = ({route}) => {
                                         placeholder='Identidad'
                                         value={id}
                                         onChangeText={setId}
+                                        onBlur={()=>validar(id)}
                                     />
+                                    {id ? null : <Animatable.View duration={500} animation="fadeInLeft">
+                                        <Text style={styles.validar}>Ingrese 13 digitos</Text>
+                                    </Animatable.View> }
                                     <TextInput
                                         style={styles.input}
                                         placeholder='Nombre'
                                         value={name}
                                         onChangeText={setName}
+                                        onBlur={()=>validar(name)}
                                     />
+                                    {name? null : <Animatable.View duration={500} animation="fadeInLeft">
+                                        <Text style={styles.validar}>Ingrese solo caracteres</Text>
+                                    </Animatable.View> }
                                     <TextInput 
                                         style={styles.input}
                                         placeholder='Apellido' 
                                         value={lastName}
-                                        onChangeText={setLastName}           
+                                        onChangeText={setLastName}      
+                                        onBlur={()=>validar(lastName)}     
                                     />
+                                    {lastName ? null : <Animatable.View duration={500} animation="fadeInLeft">
+                                        <Text style={styles.validar}>Ingrese solo caracteres</Text>
+                                    </Animatable.View> }
                                 </View>
                                 <View style={styles.dateContainer}>
                                     <Text style={styles.dateText}> Fecha de nacimiento</Text>
@@ -283,8 +308,12 @@ const EmployeeDetails = ({route}) => {
                                         style={styles.input}
                                         placeholder='Telefono' 
                                         value={phone}
-                                        onChangeText={setPhone}        
+                                        onChangeText={setPhone} 
+                                        onBlur={()=>validar(phone)}           
                                     />
+                                    {phone ? null : <Animatable.View duration={500} animation="fadeInLeft">
+                                        <Text style={styles.validar}>Ingrese solo numeros</Text>
+                                    </Animatable.View> }
                                     <TextInput
                                         style={styles.inputArea}
                                         multiline={true}
@@ -292,7 +321,11 @@ const EmployeeDetails = ({route}) => {
                                         placeholder='Dirección'
                                         value={place}
                                         onChangeText={setPlace}
-                                    />        
+                                        onBlur={()=>validar(place)}    
+                                    />    
+                                    {place? null : <Animatable.View duration={500} animation="fadeInLeft">
+                                        <Text style={styles.validar}>Ingrese solo caracteres</Text>
+                                    </Animatable.View> }
                                 </View>
                                 
                                 <View style={styles.pickerView}>
@@ -300,8 +333,7 @@ const EmployeeDetails = ({route}) => {
                                             selectedValue={selectedState}
                                             onValueChange={(itemValue, itemIndex) =>
                                                 setSelectedState(itemValue)
-                                            }  
-                                            
+                                            }                       
                                         >
                                             <Picker.Item label="Seleccionar rol de usuario" value="" enabled={false}/>
                                             <Picker.Item label="Empleado" value="employee"  />
@@ -328,10 +360,10 @@ const EmployeeDetails = ({route}) => {
                                     ></CheckBox>
                                 </View>
                             </View>
-                            <View>
-                                <Errors errors={errors} title='Errores de campos' />
-                                <Errors errors={errors} title='Mensajes del servidor' />
-                            </View>
+                            <View style={styles.formContainer}>
+                              <Errors errors={errors} title='Mensajes del servidor' />    
+                            </View>         
+                            
                             <Pressable
                                 onPress={updateEmployee}
                                 style={styles.btn}
@@ -399,7 +431,7 @@ const styles = StyleSheet.create({
     inputArea: {
         borderWidth: 1,
         borderColor: '#ababab',
-        marginBottom: 10,
+        marginBottom: 25,
         height: 100,
         width: '100%',
         borderRadius: 12,
@@ -482,5 +514,10 @@ const styles = StyleSheet.create({
         marginHorizontal: 60,
         marginTop: 40,
         marginBottom: 10
-    }
+    },
+    validar:{
+        bottom: 20,
+        color: "#777",
+        fontSize: 15
+    },
 });
