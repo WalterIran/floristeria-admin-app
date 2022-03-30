@@ -13,7 +13,8 @@ import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import Wrapper from '../../components/Wrapper';
 import Errors from '../../components/Errors';
 import * as Yup from 'yup';
-import { set } from 'react-native-reanimated';
+
+const USER_FIND_URL = '/users/byemployeeid/'
 const USER_UPT_URL = '/users/update-customer/';
 const USER_ACT_URL = 'users/activate-user/';
 const USER_INA_URL = 'users/inactivate-user/';
@@ -103,7 +104,7 @@ const EmployeeDetails = ({route}) => {
         }
     }
     const getEmployee =  async () =>{
-        const response = await axiosPrivate.get(`/users/byemployeeid/${employeeId}`)
+        const response = await axiosPrivate.get(USER_FIND_URL+employeeId)
         .then(function (response){
             setData(response.data);
          })
@@ -146,16 +147,7 @@ const EmployeeDetails = ({route}) => {
     }
     const activateUser = async ()=>{
         try {
-            const reponse = await axiosPrivate.put(USER_ACT_URL+employeeId)
-            .then(function (response){
-                setData(response.data);
-             })
-             .catch(function (error){
-                if(!error?.response) {
-                    setErrors({Servidor: 'Error en el servidor'})
-                }
-                console.error(error);
-             });
+            const reponse = await axiosPrivate.put(USER_ACT_URL+employeeId);
         } catch (error) {
             console.log(error);
         }
@@ -312,7 +304,7 @@ const EmployeeDetails = ({route}) => {
                                         onBlur={()=>validar(phone)}           
                                     />
                                     {phone ? null : <Animatable.View duration={500} animation="fadeInLeft">
-                                        <Text style={styles.validar}>Ingrese solo numeros</Text>
+                                        <Text style={styles.validar}>Ingrese 8 digitos</Text>
                                     </Animatable.View> }
                                     <TextInput
                                         style={styles.inputArea}
