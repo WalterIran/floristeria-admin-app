@@ -1,101 +1,130 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { StyleSheet, Text, View, ScrollView, SafeAreaView, Pressable } from 'react-native';
+import { StyleSheet, Text, View, RefreshControl, SafeAreaView, Pressable, ActivityIndicator } from 'react-native';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import BottomSheet from '@gorhom/bottom-sheet';
+
 //API
 import axios from '../../api/axios';
-const newstProductURL = '/products/newest';
+const productsURL = '/products/all';
 
 //Components
 import Wrapper from '../../components/Wrapper';
 import SearchBar from '../../components/SearchBar';
 import ProductResult from '../../components/ProductResult';
+import { FlatList } from 'react-native-gesture-handler';
+
+const LIMIT = 10;
+let PAGE = 1;
 
 const ProductList = () => {
     const navigation = useNavigation();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [ isNext, setIsNext ] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
-    // ref
-    const bottomSheetRef = useRef(null);
-
-    // variables
-    const snapPoints = useMemo(() => ['1%', '50%','80%'], []);
-
-    // callbacks
-    const handleSheetChanges = useCallback((index) => {
-      console.log('handleSheetChanges', index);
+    const onRefresh = useCallback(async () => {
+      try {
+        console.log('AQUI 2222');
+        setRefreshing(true);
+        setProducts([]);
+        PAGE = 1;
+        await showProducts();
+      } catch (error) {
+        console.log(error);
+      }
     }, []);
-    
-    const handleCloseSheet = () => bottomSheetRef.current.close();
-    const handleOpenSheet = () => bottomSheetRef.current.snapToPosition('80%');
 
     const showProducts = async () => {
         try {
-            const respNewest = await axios.get(newstProductURL, {params: {limit: 10}});
-            setProducts(respNewest.data.products);
+            const res = await axios.get(productsURL, {params: {limit: LIMIT, page: PAGE}});
+            
+            setProducts([...products, ...res.data.products]);
+
+            if(res.data.pagination.nextPage !== null){
+              PAGE = res.data.pagination.nextPage;
+              setIsNext(true);
+            }else{
+              setIsNext(false);
+            }
+            
+            setRefreshing(false);
         } catch (error) {
             console.log(error);
         }
     }
 
-    useEffect(async () => {
-    await showProducts();
+    useEffect(() => {
+      (async () => {
+        await showProducts();
+      })();
+
+      return() => {
+        setProducts([]);
+      }
     }, []);
 
   return (
     <Wrapper>
         <View style={[styles.container, {position: 'relative', paddingHorizontal: 0, paddingTop: 0}]}>
             <View style={styles.searchSection}>
-                <SearchBar setProducts={setProducts} setLoading={setLoading} />
-                <View style={styles.filterBtn}>
-                    <Pressable onPress={handleOpenSheet}>
-                        <IonIcon name='filter' size={24} />
-                    </Pressable>
-                </View>
+                <SearchBar setProducts={setProducts} setLoading={setLoading} setIsNext={setIsNext} />
             </View>
             <Pressable style={styles.addBtn} onPress={() => navigation.navigate('NewProduct')}>
                 <IonIcon name='add' size={40} />
             </Pressable>
-            <ScrollView contentContainerStyle={[styles.container]} scrollIndicatorInsets={{right: 1}}>
-                <SafeAreaView style={{marginBottom: 20}}>
-                    <View style={{flex: 1}}>
-                    {
-                        products.map((product) => {
-                            return (
-                            <ProductResult
-                                key={product.id}
-                                productId={product.id}
-                                img={product.productImgUrl} 
-                                title={product.productName}
-                                desc={product.productDescriptionTitle}
-                                price={product.price}
-                                discount={defineDiscount(product.price, product.discount, product.discountExpirationDate, product.product_tag)}
-                                onPress={() => navigation.navigate('EditProduct', {prodId: product.id})}
-                            />
-                            );
-                        })
-                    }
-                    </View>
-                </SafeAreaView>
-            </ScrollView>
-          <BottomSheet
-            ref={bottomSheetRef}
-            index={0}
-            snapPoints={snapPoints}
-            onChange={handleSheetChanges}
-          >
-            <View style={styles.contentContainer}>
-              <Pressable onPress={handleCloseSheet}><Text>Awesome 🎉</Text></Pressable>
-            </View>
-          </BottomSheet>
+            <SafeAreaView style={styles.container}>
+              
+              <FlatList
+                data={products}
+                numColumns={1}
+                renderItem={renderItem}
+                keyExtractor={item => item.id}
+                onEndReached={isNext && showProducts}
+                contentContainerStyle={[styles.container, {marginBottom: 80}]}
+                onEndReachedThreshold={0}
+                refreshControl={
+                  <RefreshControl 
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                  />
+                }
+                ListFooterComponent={
+                  isNext ? (
+                    <ActivityIndicator 
+                        size="large"
+                        styles={styles.spinner}
+                        color="#aeaeae"
+                    />
+                  ) : (
+                    <View style={{height: 80, width: '100%'}}></View>
+                  )
+                }
+                ListFooterComponentStyle={{marginBottom: 150}}
+              />
+            </SafeAreaView>
         </View>
     </Wrapper>
   )
 }
 
 export default ProductList;
+
+const renderItem = ({item: product}) => {
+  return(
+    <ProductResult
+        key={product.id}
+        productId={product.id}
+        img={product.productImgUrl} 
+        title={product.productName}
+        desc={product.productDescriptionTitle}
+        price={product.price}
+        discount={defineDiscount(product.price, product.discount, product.discountExpirationDate, product.product_tag)}
+        onPress={() => navigation.navigate('EditProduct', {prodId: product.id})}
+    />
+  );
+}
 
 const defineDiscount = (prodPrice, prodDiscount, prodExpDate, prodTags) => {
     let discount = 0;

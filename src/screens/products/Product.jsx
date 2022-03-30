@@ -137,19 +137,8 @@ const Product = ({formik, image, setImage, loading, tagOptions, selectedTags, on
                 )
                 }
             </View>
-            <ScrollView
-                contentContainerStyle={{width: '100%'}}
-                horizontal={true}
-            >
-                <SelectBox
-                    label="Seleccione las etiquetas"
-                    options={tagOptions}
-                    selectedValues={selectedTags}
-                    onMultiSelect={onMultiChange}
-                    onTapClose={onMultiChange}
-                    isMulti
-                />
-            </ScrollView>
+            <CustomSelect tagOptions={tagOptions} selectedTags={selectedTags} onMultiChange={onMultiChange} />
+
             <Errors errors={formik.errors} title='Errores de campos' />
             <Errors errors={errors} title='Mensajes del servidor' />
             <View style={{marginTop: 24, width: '100%'}}>
@@ -163,6 +152,21 @@ const Product = ({formik, image, setImage, loading, tagOptions, selectedTags, on
 }
 
 export default Product;
+
+const CustomSelect = ({tagOptions, selectedTags, onMultiChange}) => {
+    return(
+        <View style={{flex: 1, width: '100%'}}>
+            <SelectBox
+                    label="Seleccione las etiquetas"
+                    options={tagOptions}
+                    selectedValues={selectedTags}
+                    onMultiSelect={onMultiChange}
+                    onTapClose={onMultiChange}
+                    isMulti
+                />
+        </View>
+    );
+}
 
 const styles = StyleSheet.create({
     formContainer: {

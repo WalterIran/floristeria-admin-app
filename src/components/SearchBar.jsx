@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, SafeAreaView, TextInput } from 'react-native';
 import IonIcons from 'react-native-vector-icons/Ionicons';
 import axios from '../api/axios';
 
-const SearchBar = ({setProducts, setLoading}) => {
+const SearchBar = ({setProducts, setLoading, setIsNext}) => {
 
     const handleSearch = async (e) => {
         const value = e.nativeEvent.text;
@@ -13,7 +13,8 @@ const SearchBar = ({setProducts, setLoading}) => {
                 { params: {search: value}}
             );
             const products = response.data.products;
-            setProducts(products);
+            setIsNext(false);
+            setProducts([...products]);
         } catch {
             console.error(error);
             alert('Algo salió prueba luego...');

@@ -37,9 +37,9 @@ const ProductResult = ({img, title, desc, price, productId, discount, onPress}) 
                         <Text style={priceStyle}>{formatter.format(price)}</Text>
                     </View>
                     <View style={styles.optSection}>
-                        <Pressable style={styles.option} onPress={() => goTo('ProductStatistics')}>
+                        {/* <Pressable style={styles.option} onPress={() => goTo('ProductStatistics')}>
                             <MaterialCommunityIcons name='chart-bar' size={24} color="#BFA658" />
-                        </Pressable>
+                        </Pressable> */}
                         <Pressable style={[styles.option, {marginLeft: 8}]} onPress={() => goTo('EditProduct')}>
                             <MaterialIcons name='edit' size={24} color="#BFA658" />
                         </Pressable>
