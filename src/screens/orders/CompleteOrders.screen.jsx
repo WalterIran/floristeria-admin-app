@@ -97,7 +97,7 @@ export default CompleteOrdersScreen;
 
 const styles = StyleSheet.create({
   flatListContentContainer: {
-      paddingHorizontal: 5,
+      paddingHorizontal: 15,
       marginTop: Platform.OS === 'android' ? 30 : 0,
   },
 });
