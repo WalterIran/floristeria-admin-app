@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, ScrollView, Pressable, ActivityIndicator, Modal } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, ScrollView, Pressable, ActivityIndicator, Modal, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import "intl";
 import "intl/locale-data/jsonp/en";
@@ -7,16 +7,19 @@ import Detail from '../../components/OrderDetail.component';
 import { useNavigation } from '@react-navigation/native';
 import { formatter } from '../../utils/formatter';
 import {Picker} from '@react-native-picker/picker';
+import useAuth from '../../hooks/useAuth';
 
 import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 
 const OrderDetail = ({route}) => {
   const navigation = useNavigation();
   const axiosPrivate = useAxiosPrivate();
+  const { auth } = useAuth();
   const { billId } = route?.params;
   const [detail, setDetail] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedState, setSelectedState] = useState();
+  const [reload, setReload] = useState(false)
   const [orderStatus, setOrderStatus] = useState([
     {
       key: 'received',
@@ -40,12 +43,51 @@ const OrderDetail = ({route}) => {
     }
   ]);
 
+  const updateStatus = async () => {
+    const datos = {
+      status: selectedState,
+      employeeId: auth?.user?.id
+    }
+
+    try {
+      const responseMsg = await axiosPrivate.put(`/orders/updatestatus/${billId}`,
+        JSON.stringify(datos),
+        {
+          headers: { 'Content-Type': 'application/json' },
+          withCredentials: true
+        }
+      )
+      .then(res =>{
+        console.log(res.data);
+        Alert.alert("Orden modificada", "La orden fue modificada con exito");
+        setReload(true);
+      })
+      .catch(err => {
+          console.log(err);
+          Alert.alert("Error", "Error al modificar el estado");
+      });
+    }
+    catch (error) {
+      console.log(error);
+      Alert.alert("Error", "Ocurrio un error al modificar el estado de la orden");
+    }
+  }
+
+  const clearStatus = () =>{
+    for(let i = 0; i < orderStatus.length; i++){
+      const newArr = orderStatus;
+      newArr[i].status = 'none';
+      setOrderStatus(newArr);
+    }
+  }
+
   useEffect(() => {
     ( async () => {
       try {
         const response = await axiosPrivate.get(`/orders/order-detail/${billId}`);
         const resOrderStatus = response.data.result.orderStatus;
-        
+        clearStatus();
+
         for(let i = 0; i < orderStatus.length; i++) {
           if(resOrderStatus === 'canceled') {
             break;
@@ -69,12 +111,12 @@ const OrderDetail = ({route}) => {
 
         }
         setDetail(response.data.result);
-
+        setReload(false);
       } catch (error) {
         console.error(error);
       }
     })();
-  }, [])
+  }, [reload])
   
   return (
     <>
@@ -107,7 +149,11 @@ const OrderDetail = ({route}) => {
                 </View>
                 <Pressable
                   style={[styles.button, styles.buttonClose]}
-                  onPress={() => setModalVisible(!modalVisible)}
+                  onPress={() => {
+                      updateStatus();
+                      setModalVisible(!modalVisible);
+                    }
+                  }
                 >
                   <Text style={styles.textStyle}>Guardar</Text>
                 </Pressable>
@@ -121,7 +167,6 @@ const OrderDetail = ({route}) => {
                     <View style={styles.line}></View>
                     <Text>
                       <Text style={[styles.text]}>Estado: </Text>
-                      <Text style={[styles.status, styles.text]}>Enviando</Text>
                     </Text>
                     <View style={styles.statusSection}>
                         {/* done, pending, none */}

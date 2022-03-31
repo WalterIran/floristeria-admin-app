@@ -1,5 +1,5 @@
-import { StyleSheet, ActivityIndicator, SafeAreaView, Platform, FlatList } from 'react-native'
-import { useState, useEffect } from 'react';
+import { StyleSheet, ActivityIndicator, SafeAreaView, Platform, FlatList, RefreshControl } from 'react-native'
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 //Components
@@ -11,16 +11,27 @@ import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 const LIMIT = 5;
 let PAGE = 1;
 
+const wait = (timeout) => {
+  return new Promise(resolve => setTimeout(resolve, timeout));
+}
+
 const PendingOrdersScreen = () => {
   const navigation = useNavigation();
   const axiosPrivate = useAxiosPrivate();
   const { auth } = useAuth();
   const [orders, setOrders] = useState([]);
   const [ isNext, setIsNext ] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const goToOrderDetail = (billId) => {
     navigation.navigate('OrderDetail', {billId});
   }
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    PAGE=1;
+    loadOrders();
+  }, []);
 
   useEffect(() => {
     ( async () => {
@@ -40,6 +51,8 @@ const PendingOrdersScreen = () => {
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      setRefreshing(false);
     }
   }
   
@@ -65,6 +78,12 @@ const PendingOrdersScreen = () => {
                   />
               )
             }
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+              />
+            }
           />
         ) : (
           <ActivityIndicator />
@@ -78,7 +97,7 @@ export default PendingOrdersScreen;
 
 const styles = StyleSheet.create({
   flatListContentContainer: {
-      paddingHorizontal: 5,
+      paddingHorizontal: 15,
       marginTop: Platform.OS === 'android' ? 30 : 0,
   },
 });
