@@ -1,24 +1,23 @@
-import { StyleSheet, Text, View, SafeAreaView, ScrollView, Pressable, ActivityIndicator, Button, FlatList } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { formatter } from '../utils/formatter';
-import React from 'react'
+import { useState, useEffect } from 'react';
 
-const TagResult = ({ tagName, desc, discount, tagId }) => {
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import axios from '../api/axios';
+const TagResult = ({ tagName, tagDescription, discount, tagId, discountExpirationDate }) => {
     const navigation = useNavigation();
 
-
-    const goToEdit =(id) => {
-        navigation.navigate('EditTags', {tagId});
+    const goToEditTags = (tagId, tagName, tagDescription, discount, discountExpirationDate) => {
+        navigation.navigate("EditTags", { tagId, tagName, tagDescription, discount, discountExpirationDate });
     }
-
     
-
     return (
-        
+
         <View style={[styles.container, styles.shadow]}>
             <View style={styles.section}>
                 <Text style={styles.TagNombre}>Categoria: {tagName}</Text>
-                <Text style={styles.text}>Descripcion: {desc}</Text>
+                <Text style={styles.text}>Descripcion: {tagDescription}</Text>
                 <View style={styles.line}></View>
                 <Text>
                     <Text style={[styles.text]}>Descuento: </Text>
@@ -27,12 +26,13 @@ const TagResult = ({ tagName, desc, discount, tagId }) => {
             </View>
             <Pressable
                 style={styles.btnEdit}
-                onPress={() => goToEdit(tagId)}
+                onPress={() => goToEditTags(tagId, tagName, tagDescription, discount, discountExpirationDate)}
             >
                 <Text style={styles.btnEditText} >Editar</Text>
             </Pressable>
+
         </View>
-        
+
 
     )
 }
@@ -117,4 +117,22 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 18,
     },
+    btnDelete: {
+        marginHorizontal: "90%",
+        backgroundColor: '#fff',
+        fontSize: 24,
+        height: '25%',
+        width: '15%',
+        justifyContent: 'center',
+        borderRadius: 50,
+        marginVertical: '-15%',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        paddingHorizontal: 7,
+    }
 });

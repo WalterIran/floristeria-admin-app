@@ -1,68 +1,151 @@
-import { StyleSheet, Text, View, SafeAreaView, Image, TextInput, Pressable, ActivityIndicator, Button } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TextInput, Pressable, ActivityIndicator, Button } from 'react-native';
 import { useState } from 'react';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import Wrapper from '../../components/Wrapper';
+
+import axios from '../../api/axios';
+import { useNavigation } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import IonIcons from 'react-native-vector-icons/Ionicons';
+import useAuth from '../../hooks/useAuth';
+
+const newTag_URL = '/tags/createTags';
+
+const initialValues = {
+  tagName: '',
+  tagDescription: '',
+  discount: '',
+  discountExpirationDate: new Date() || '',
+}
 
 const NewTags = () => {
-  const [ isPickerShown, setIsPickerShown ] = useState(false);
+  const [errors, setErrors] = useState({});
+  const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
+  const [date, setDate] = useState(new Date());
+  const [mode, setMode] = useState('date');
+  const [show, setShow] = useState(false);
+  const { auth } = useAuth();
 
+  const onChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShow(Platform.OS === 'ios');
+    setDate(currentDate);
+  };
+
+  const showMode = (currentMode) => {
+    setShow(true);
+    setMode(currentMode);
+  };
+
+  const showDatepicker = () => {
+    showMode('date');
+  };
+
+  const goBack = () => {
+    navigation.navigate("ViewTags")
+  }
+
+  const formik = useFormik({
+    initialValues: initialValues,
+    validationSchema: Yup.object(validationSchema()),
+    onSubmit: async (formValue) => {
+      setLoading(true);
+      try {
+        const response = await axios.post(newTag_URL,
+          JSON.stringify(formValue),
+          {
+            headers: { 'Content-Type': 'application/json' },
+            withCredentials: true
+          }
+        );
+        goBack();
+      } catch (error) {
+        if (!error?.response) {
+          setErrors({ Servidor: 'Error en el servidor' })
+        } else if (error.response?.status === 401) {
+          setErrors({ Inautorizado: 'Correo o contraseña incorrecta' });
+        }
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  });
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.formContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder='Nombre de la Categoria'
-          autoCapitalize='none'
-        />
-        <TextInput
-          style={[styles.descripcion]}
-          placeholder='Descripcion'
-          multiline
-        />
-        <TextInput
-          style={styles.input}
-          placeholder='Descuento'
-          autoCapitalize='none'
-        />
+    <Wrapper>
 
-<View style={{width: '100%', borderWidth: 1, borderColor: '#ababab', borderRadius: 16, padding: 16, marginBottom: 24}}>
-                <Text style={{fontSize: 24, color: '#ababab'}}>Expiración del descuento</Text>
-                {
-                (!isPickerShown && Platform.OS === 'android') && (
-                    <Button title='Seleccionar fecha' color='#BFA658' onPress={() => setIsPickerShown(true)}/>
-                )
-                }
+      <SafeAreaView style={styles.container}>
+        <View style={styles.formContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder='Nombre de la Categoria'
+            value={formik.values.tagName}
+            onChangeText={(text) => formik.setFieldValue('tagName', text)}
+          />
+          <TextInput
+            style={[styles.descripcion]}
+            placeholder='Descripcion'
+            value={formik.values.tagDescription}
+            onChangeText={(text) => formik.setFieldValue('tagDescription', text)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder='Descuento'
+            value={formik.values.discount}
+            onChangeText={(text) => formik.setFieldValue('discount', text)}
+          />
 
-                {
-                (isPickerShown || Platform.OS === 'ios') && (
-                    <DateTimePicker
-                        testID="discountExpiration"
-                        style={{width: '100%'}}
-                        mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
-                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                        maximumDate={Date.parse(new Date())}
-                        minimumDate={Date.parse(new Date(1930, 0, 1))}
-                        timeZoneOffsetInMinutes={60}
-                        value={new Date()}
-                        //value={formik.values.}
-                        // onChange={dateChange}
-                    />
-                )
-                }
-            </View>
+          <View style={styles.formContainer}>
 
-        <Pressable
-          style={styles.btn}
-        >
-          <Text style={styles.btnText} >Guardar</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+
+            <Pressable
+              style={styles.btn}
+              onPress={showDatepicker}
+            >
+              <Text style={styles.btnText} >Fecha de Vencimiento</Text>
+            </Pressable>
+            {show && (
+              <DateTimePicker
+                testID="discountExpirationDate"
+                style={{ width: '100%' }}
+                is24Hour={true}
+                mode={mode}
+                display="default"
+                maximumDate={Date.parse(new Date())}
+                minimumDate={Date.parse(new Date(1930, 0, 1))}
+                timeZoneOffsetInMinutes={60}
+                value={date}
+                onChange={onChange}
+              />
+            )}
+          </View>
+
+          <Pressable
+            style={styles.btn}
+            onPress={formik.handleSubmit}
+          >
+            <Text style={styles.btnText} >Crear Categoria</Text>
+            {loading && <ActivityIndicator size='small' color="#fff" />}
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    </Wrapper>
   )
 }
 
 export default NewTags;
+
+function validationSchema() {
+  return {
+    tagName: Yup.string().required("Campo requerido"),
+    tagDescription: Yup.string().required("Campo requerido"),
+    discount: Yup.number().required("Campo requerido"),
+    discountExpirationDate: Yup.string().required("Campo requerido")
+  }
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -77,7 +160,7 @@ const styles = StyleSheet.create({
     paddingVertical: 30,
     paddingHorizontal: '7%',
     backgroundColor: "#fff",
-},
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ababab',
@@ -99,7 +182,7 @@ const styles = StyleSheet.create({
     top: 64,
     left: 16,
     zIndex: 2
-},
+  },
   text: {
     fontSize: 18,
     textAlign: 'center',
@@ -126,20 +209,37 @@ const styles = StyleSheet.create({
     height: 60,
     width: '100%',
     justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: {
-      width: 0,
-      height: 2,
+        width: 0,
+        height: 2,
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
+    marginBottom:30
+},
+btnText: {
+  color: '#fff',
+  textAlign: 'center',
+  fontSize: 20,
+},
+  dateContainer: {
+    width: '80%',
+    marginHorizontal: 40,
+    borderColor: '#ababab',
+    borderWidth: 1,
+    borderRadius: 20,
+    height: 270,
+    marginBottom: 15,
   },
-  btnText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontSize: 24,
-  }
+  picker: {
+    marginTop: 10
+  },
+  dateText: {
+    fontSize: 20,
+    color: "#ababab",
+    paddingHorizontal: 15,
+    paddingTop: 10,
+  },
 });
