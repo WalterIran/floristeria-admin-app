@@ -15,7 +15,7 @@ import Errors from '../../components/Errors';
 import * as Yup from 'yup';
 
 const USER_FIND_URL = '/users/byemployeeid/'
-const USER_UPT_URL = '/users/update-employee/';
+const USER_UPT_URL = '/users/update-customer/';
 const USER_ACT_URL = 'users/activate-user/';
 const USER_INA_URL = 'users/inactivate-user/';
 const USER_EMP_URL = 'users/role-employee/';
@@ -133,12 +133,14 @@ const EmployeeDetails = ({route}) => {
                 goBack();
              })
              .catch(function (error){
+                 console.log('AQUI 1');
                 if(!error?.response) {
                     setErrors({Servidor: 'Error en el servidor'});
                 }
              });
              if(!response){
-                setErrors({error: 'campos erroneos.'});
+                console.log('Error')
+                //setErrors({error: 'campos erroneos.'});
              }
              setLoading(false);
         } catch (error) {

@@ -14,6 +14,7 @@ const Employee = () => {
     const axiosPrivate = useAxiosPrivate();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
+
     const goToEmployeeDetails = (employeeId,personId,userName,userLastname,birthDate,phoneNumber,address,userStatus,userRole) =>{
         navigation.navigate("EmployeeDetails",{employeeId,personId,userName,userLastname,birthDate,phoneNumber,address,userStatus,userRole});
     }
@@ -32,6 +33,7 @@ const Employee = () => {
        });
        setLoading(false);
     }
+
     const deleteUser = async (id) =>{
       try {
           const response = await axiosPrivate.delete(USER_DEL_URL+id);
@@ -46,15 +48,14 @@ const Employee = () => {
           console.log(error);
       }
   }
+  
     useEffect(() => {
       getEmployee();
-      const unsub = navigation.addListener('focus', getEmployee);
-      return unsub;
-    }, [navigation]);
+    }, []);
   
   
     return(     
-      <ScrollView contentContainerStyle={{paddingVertical: 32, paddingHorizontal: 16}}> 
+      <ScrollView> 
       <Button title='Refrescar' onPress={getEmployee} />
       {
         data !== null && !loading ? (
@@ -124,7 +125,8 @@ export default Employee;
 
 const styles = StyleSheet.create({
       container: {
-        width: '100%',
+        width: '90%',
+        marginLeft: 20,
         height: 300,
         borderRadius: 12,
         backgroundColor: '#fff',
