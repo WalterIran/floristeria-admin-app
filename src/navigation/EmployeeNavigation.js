@@ -31,7 +31,6 @@ const EmployeeNavigation = () => {
                     headerShown: false
                 }}
             />
-           
         </Stack.Navigator>
     );
 }

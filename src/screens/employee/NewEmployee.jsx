@@ -1,13 +1,74 @@
 import { useNavigation } from '@react-navigation/native';
-import { StyleSheet, Text, View, SafeAreaView, TextInput, Pressable, ScrollView, Alert} from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TextInput, Pressable, ScrollView, ActivityIndicator} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useState,useEffect } from "react";
+import {Picker} from '@react-native-picker/picker';
 
-const NewEmployee = () => {   
+//AXIOS
+import axios from '../../api/axios';
+import useAuth from '../../hooks/useAuth';
+import Errors from '../../components/Errors';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+
+const REGISTER_URL = '/users/register-employee'
+
+const initialValues = {
+    userName: '',
+    userLastname: '',
+    userRole: '',
+    email: '',
+    password: '',
+    repeatPassword: '',
+}
+
+function validationSchema(){
+    return {
+        userName: Yup.string().required("Campo requerido"),
+        userLastname: Yup.string().required("Campo requerido"),
+        userRole: Yup.string().required("Campo requerido"),
+        email: Yup.string().required("Campo requerido").email("Correo inválido"),
+        password: Yup.string().required("Campo requerido"),
+        repeatPassword: Yup.string().oneOf([Yup.ref('password'), null],'Confirmar contraseña debe ser igual a contraseña'),
+    }
+}
+
+const NewEmployee = () => {
+    const [errors, setErrors] = useState({});  
     const navigation = useNavigation();
+    const [selectedState, setSelectedState] = useState();
+    const [loading, setLoading] = useState(false);
 
     const goBack = () =>{
         navigation.navigate("Employee");
     }
+
+    const formik = useFormik({
+        initialValues: initialValues,
+        validationSchema: Yup.object(validationSchema()),
+        onSubmit: async (formValue) => {
+            setLoading(true);
+            try {
+                const response = await axios.post(REGISTER_URL,
+                    JSON.stringify(formValue),
+                    {
+                        headers: { 'Content-Type': 'application/json' },
+                        withCredentials: true
+                    }     
+                );
+                goBack();
+            } catch (error) {
+                if(!error?.response) {
+                    setErrors({Servidor: 'Error en el servidor'})
+                }else if(error.response?.status === 401) {
+                    setErrors({Inautorizado: 'Correo o contraseña incorrecta'});
+                }
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        }
+    });
     return(
         <SafeAreaView style={styles.container}>
             <ScrollView>      
@@ -26,31 +87,62 @@ const NewEmployee = () => {
                 <TextInput
                     style={styles.input}
                     placeholder='Nombre'
+                    value={formik.values.userName}
+                    onChangeText={(text) => formik.setFieldValue('userName', text)}
                 />
                 <TextInput 
                     style={styles.input}
-                    placeholder='Apellido'                 
+                    placeholder='Apellido'  
+                    value={formik.values.userLastname}
+                    onChangeText={(text) => formik.setFieldValue('userLastname', text)}               
                 />
-                <TextInput
-                    style={styles.input}
-                    placeholder='Correo'                
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder='Contraseña'                
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder='Confirmar Contraseña'                
-                />
-            </View>
-
-                    <Pressable
-                        style={styles.btn}
-                        onPress={goBack}
+                </View>
+                 <View style={styles.pickerView}>
+                    <Picker
+                        selectedValue={formik.values.userRole= selectedState}
+                        onValueChange={(itemValue) =>
+                            setSelectedState(itemValue)
+                        }                           
+                        key={formik.values.userRole}
                     >
-                        <Text style={styles.btnText} >Agregar</Text>
-                    </Pressable>
+                        {formik.values.userRole == '' && <Picker.Item value="" enabled={false}/>}
+                        <Picker.Item label="Seleccionar rol de usuario" value= 'null' enabled={false}/>
+                        <Picker.Item label="Empleado" value= 'employee'/>
+                        <Picker.Item label="Administrador" value='admin'/>
+                                     
+                    </Picker>
+                </View>
+                <View style={styles.formContainer}>
+                <TextInput
+                    style={styles.input}
+                    placeholder='Correo'      
+                    value={formik.values.email}
+                    onChangeText={(text) => formik.setFieldValue('email', text)}          
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder='Contraseña'     
+                    value={formik.values.password}
+                    secureTextEntry={true}
+                    onChangeText={(text) => formik.setFieldValue('password', text)}            
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder='Confirmar Contraseña' 
+                    value={formik.values.repeatPassword}
+                    secureTextEntry={true}
+                    onChangeText={(text) => formik.setFieldValue('repeatPassword', text)}                        
+                />
+                <Errors errors={formik.errors} title='Errores de campos' />
+                <Errors errors={errors} title='Mensajes del servidor' />
+                </View>
+                <Pressable
+                    style={styles.btn}
+                    onPress={formik.handleSubmit}
+                >
+                    <Text style={styles.btnText} >Crear cuenta</Text>
+                    {loading && <ActivityIndicator size='small' color="#fff"/>}
+                </Pressable>
             </ScrollView>
         </SafeAreaView>
     )
@@ -84,7 +176,7 @@ const styles = StyleSheet.create({
     input: {
         borderWidth: 1,
         borderColor: '#ababab',
-        marginBottom: 24,
+        marginBottom: 20,
         height: 52,
         width: '100%',
         borderRadius: 12,
@@ -154,5 +246,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginVertical: 10,
         marginTop: 20
+    },
+    pickerView: {
+        marginHorizontal: 20,
+        height: 52,
+        width: '90%',
+        textAlign: 'center',
+        justifyContent: 'center',
+        marginVertical: 65,
     }
 });

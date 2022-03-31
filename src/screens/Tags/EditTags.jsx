@@ -1,76 +1,197 @@
-import { StyleSheet, Text, View, SafeAreaView, Image, TextInput, Pressable, ActivityIndicator, Button } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
+import { StyleSheet, Text, View, SafeAreaView, ScrollView, ActivityIndicator, TextInput, Pressable, Platform, Button } from 'react-native';
+import { useState, useEffect } from "react";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useFormik } from 'formik';
-import IonIcons from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
+import * as Yup from 'yup';
+import useAuth from '../../hooks/useAuth';
+import Errors from '../../components/Errors';
+import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+import Wrapper from '../../components/Wrapper';
 
-const EditTags = () => {
-  const [isPickerShow, setIsPickerShow] = useState(false);
+const tag_upt_url = '/tags/updateTag/';
 
-  const dateChange = (e, value) => {
-    if (Platform.OS === 'android') {
-      setIsPickerShow(false);
+const EditTags = ({ route }) => {
+  const navigation = useNavigation();
+  const { auth, setAuth } = useAuth();
+  const axiosPrivate = useAxiosPrivate();
+  const [loading, setLoading] = useState(false);
+  const [isPickerShown, setIsPickerShown] = useState(false);
+
+  //Parametros
+  const { tagId, tagName, tagDescription, discount, discountExpirationDate } = route?.params;
+
+  //
+  const [data, setData] = useState(null);
+  const [Name, setName] = useState(null);
+  const [Description, settagDescription] = useState(null);
+  const [descuento, setdiscount] = useState(null);
+
+  //DateTimePicker 
+  const [date, setDate] = useState(new Date());
+  const [mode, setMode] = useState('date');
+  const [show, setShow] = useState(true);
+
+  const goBack = () => {
+    navigation.navigate("ViewTags");
+  }
+
+  const onChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShow(Platform.OS === 'ios');
+    setDate(currentDate);
+  };
+
+  const showMode = (currentMode) => {
+    setShow(true);
+    setMode(currentMode);
+  };
+
+  const showDatepicker = () => {
+    showMode('date');
+  };
+
+  const values = {
+    tagName: Name || '',
+    tagDescription: Description || '',
+    discount: descuento || '',
+    discountExpirationDate: new Date(date) || '',
+  }
+
+  const getTag = async () => {
+    const response = await axiosPrivate.get(`/tags/findtag/${tagId}`)
+      .then(function (response) {
+        setData(response.data);
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  }
+
+  const updateTag = async () => {
+    try {
+      validationSchema();
+      setLoading(true);
+      const response = await axiosPrivate.patch(tag_upt_url + tagId,
+        JSON.stringify(values)
+      )
+        .then(function (response) {
+          setData(response.data);
+          goBack();
+        })
+        .catch(function (error) {
+          if (!error?.response) {
+            setErrors({ Servidor: 'Error en el servidor' });
+          }
+        });
+      if (!response) {
+        setErrors({ error: 'campos erroneos.' });
+      }
+      setLoading(false);
+    } catch (error) {
+
     }
   }
 
+  useEffect(() => {
+    (async () => {
+      try {
+        await getTag();
+        setDate(new Date(discountExpirationDate));
+        setName(tagName);
+        settagDescription(tagDescription);
+        setdiscount(discount);
+      } catch (error) {
+        console.error(error);
+      }
+    })()
+  }, [])
+
   return (
-    <SafeAreaView style={styles.container}>
-      
+    <>
+      {
+        data !== null && !loading ? (
 
-      <View style={styles.formContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder='Nombre de la Categoria'
-          autoCapitalize='none'
-        />
-        <TextInput
-          style={[styles.descripcion]}
-          placeholder='Descripcion'
-          multiline
-        />
-        <TextInput
-          style={styles.input}
-          placeholder='Descuento'
-          autoCapitalize='none'
-        />
+          <SafeAreaView style={styles.container}>
+            <Wrapper>
+              <ScrollView >
 
-        <View style={{ width: '100%', borderWidth: 1, borderColor: '#ababab', borderRadius: 16, padding: 16, marginBottom: 24 }}>
-          <Text style={{ fontSize: 22, color: '#ababab', padding: 7 }}>Expiracion de Descuento</Text>
-          {
-            (!isPickerShow && Platform.OS === 'android') && (
-              <Button title='Seleccionar fecha' color='#BFA658' onPress={() => setIsPickerShow(true)} />
-            )
-          }
+                <View style={styles.formContainer}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder='Nombre de la Categoria'
+                    value={Name}
+                    onChangeText={setName}
+                  />
+                  <TextInput
+                    style={[styles.descripcion]}
+                    placeholder='Descripcion'
+                    multiline
+                    value={Description}
+                    onChangeText={settagDescription}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder='Descuento'
+                    value={descuento}
+                    onChangeText={setdiscount}
+                  />
 
-          {
-            (isPickerShow || Platform.OS === 'ios') && (
-              <DateTimePicker
-                testID="birthDate"
-               
-                style={{ width: '100%' }}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                maximumDate={Date.parse(new Date())}
-                minimumDate={Date.parse(new Date(1930, 0, 1))}
-                timeZoneOffsetInMinutes={60}
-                onChange={dateChange}
-              />
-            )
-          }
-        </View>
+                  <View style={styles.formContainer}>
 
-        <Pressable
-          style={styles.btn}
-        >
-          <Text style={styles.btnText} >Guardar</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+
+                    <Pressable
+                      style={styles.btn}
+                      onPress={showDatepicker}
+                    >
+                      <Text style={styles.btnText} >Fecha de Vencimiento</Text>
+                    </Pressable>
+                    {show && (
+                      <DateTimePicker
+                        style={styles.picker}
+                        testID="discountExpirationDate"
+                        mode={mode}
+                        is24Hour={true}
+                        maximumDate={Date.parse(new Date())}
+                        minimumDate={Date.parse(new Date(1930, 0, 1))}
+                        timeZoneOffsetInMinutes={60}
+                        display="default"
+                        value={date}
+                        onChange={onChange}
+                      />
+                    )}
+                  </View>
+
+                  <Pressable
+                    style={styles.btn}
+                    onPress={updateTag}
+                  >
+                    <Text style={styles.btnText} >Actualizar Categoria</Text>
+                    {loading && <ActivityIndicator size='small' color="#fff" />}
+                  </Pressable>
+                </View>
+
+              </ScrollView>
+            </Wrapper>
+          </SafeAreaView>
+
+        ) : (
+          <ActivityIndicator />
+        )
+      }
+    </>
   )
 }
 
 export default EditTags;
+
+function validationSchema() {
+  return {
+    tagName: Yup.string().required("Campo requerido"),
+    tagDescription: Yup.string().required("Campo requerido"),
+    discount: Yup.number().required("Campo requerido"),
+    discountExpirationDate: Yup.string().required("Campo requerido")
+  }
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -82,8 +203,9 @@ const styles = StyleSheet.create({
   formContainer: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 30,
-    paddingHorizontal: '10%'
+    paddingVertical: 30,
+    paddingHorizontal: '7%',
+    backgroundColor: "#fff",
   },
   input: {
     borderWidth: 1,
@@ -106,7 +228,7 @@ const styles = StyleSheet.create({
     top: 64,
     left: 16,
     zIndex: 2
-},
+  },
   text: {
     fontSize: 18,
     textAlign: 'center',
@@ -148,5 +270,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     textAlign: 'center',
     fontSize: 24,
-  }
+  },
+  dateContainer: {
+    width: '80%',
+    marginHorizontal: 40,
+    borderColor: '#ababab',
+    borderWidth: 1,
+    borderRadius: 20,
+    height: 270,
+    marginBottom: 15,
+  },
+  picker: {
+    marginTop: 10
+  },
+  dateText: {
+    fontSize: 20,
+    color: "#ababab",
+    paddingHorizontal: 15,
+    paddingTop: 10,
+  },
 });
