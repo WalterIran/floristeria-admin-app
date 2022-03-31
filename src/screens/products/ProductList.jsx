@@ -26,7 +26,6 @@ const ProductList = () => {
 
     const onRefresh = useCallback(async () => {
       try {
-        console.log('AQUI 2222');
         setRefreshing(true);
         setProducts([]);
         PAGE = 1;

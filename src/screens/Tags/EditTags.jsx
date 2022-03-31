@@ -128,12 +128,13 @@ const EditTags = ({ route }) => {
                     multiline
                     value={Description}
                     onChangeText={settagDescription}
-                  />
+                    />
                   <TextInput
                     style={styles.input}
                     placeholder='Descuento'
                     value={descuento}
                     onChangeText={setdiscount}
+                    keyboardType='number-pad'
                   />
 
                   <View style={styles.formContainer}>
@@ -188,7 +189,7 @@ function validationSchema() {
   return {
     tagName: Yup.string().required("Campo requerido"),
     tagDescription: Yup.string().required("Campo requerido"),
-    discount: Yup.number().required("Campo requerido"),
+    discount: Yup.number(),
     discountExpirationDate: Yup.string().required("Campo requerido")
   }
 }

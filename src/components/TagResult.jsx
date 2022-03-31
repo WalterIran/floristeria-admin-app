@@ -21,7 +21,7 @@ const TagResult = ({ tagName, tagDescription, discount, tagId, discountExpiratio
                 <View style={styles.line}></View>
                 <Text>
                     <Text style={[styles.text]}>Descuento: </Text>
-                    <Text style={[styles.precio, styles.text]}>{formatter.format(discount)}</Text>
+                    <Text style={[styles.precio, styles.text]}>-{discount}%</Text>
                 </Text>
             </View>
             <Pressable

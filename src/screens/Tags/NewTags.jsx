@@ -15,7 +15,7 @@ const newTag_URL = '/tags/createTags';
 const initialValues = {
   tagName: '',
   tagDescription: '',
-  discount: '',
+  discount: '0',
   discountExpirationDate: new Date() || '',
 }
 
@@ -88,12 +88,14 @@ const NewTags = () => {
           <TextInput
             style={[styles.descripcion]}
             placeholder='Descripcion'
+            multiline
             value={formik.values.tagDescription}
             onChangeText={(text) => formik.setFieldValue('tagDescription', text)}
           />
           <TextInput
             style={styles.input}
             placeholder='Descuento'
+            keyboardType='number-pad'
             value={formik.values.discount}
             onChangeText={(text) => formik.setFieldValue('discount', text)}
           />
@@ -142,7 +144,7 @@ function validationSchema() {
   return {
     tagName: Yup.string().required("Campo requerido"),
     tagDescription: Yup.string().required("Campo requerido"),
-    discount: Yup.number().required("Campo requerido"),
+    discount: Yup.number(),
     discountExpirationDate: Yup.string().required("Campo requerido")
   }
 }
