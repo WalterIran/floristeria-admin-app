@@ -13,8 +13,9 @@ import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 import Wrapper from '../../components/Wrapper';
 import Errors from '../../components/Errors';
 import * as Yup from 'yup';
-import { set } from 'react-native-reanimated';
-const USER_UPT_URL = '/users/update-customer/';
+
+const USER_FIND_URL = '/users/byemployeeid/'
+const USER_UPT_URL = '/users/update-employee/';
 const USER_ACT_URL = 'users/activate-user/';
 const USER_INA_URL = 'users/inactivate-user/';
 const USER_EMP_URL = 'users/role-employee/';
@@ -103,7 +104,7 @@ const EmployeeDetails = ({route}) => {
         }
     }
     const getEmployee =  async () =>{
-        const response = await axiosPrivate.get(`/users/byemployeeid/${employeeId}`)
+        const response = await axiosPrivate.get(USER_FIND_URL+employeeId)
         .then(function (response){
             setData(response.data);
          })
@@ -260,6 +261,7 @@ const EmployeeDetails = ({route}) => {
                                         value={id}
                                         onChangeText={setId}
                                         onBlur={()=>validar(id)}
+                                        keyboardType= 'numeric'
                                     />
                                     {id ? null : <Animatable.View duration={500} animation="fadeInLeft">
                                         <Text style={styles.validar}>Ingrese 13 digitos</Text>
@@ -309,10 +311,11 @@ const EmployeeDetails = ({route}) => {
                                         placeholder='Telefono' 
                                         value={phone}
                                         onChangeText={setPhone} 
-                                        onBlur={()=>validar(phone)}           
+                                        onBlur={()=>validar(phone)}
+                                        keyboardType= 'numeric'           
                                     />
                                     {phone ? null : <Animatable.View duration={500} animation="fadeInLeft">
-                                        <Text style={styles.validar}>Ingrese solo numeros</Text>
+                                        <Text style={styles.validar}>Ingrese 8 digitos</Text>
                                     </Animatable.View> }
                                     <TextInput
                                         style={styles.inputArea}
