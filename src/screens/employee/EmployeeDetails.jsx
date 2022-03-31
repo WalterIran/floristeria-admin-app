@@ -261,6 +261,7 @@ const EmployeeDetails = ({route}) => {
                                         value={id}
                                         onChangeText={setId}
                                         onBlur={()=>validar(id)}
+                                        keyboardType= 'numeric'
                                     />
                                     {id ? null : <Animatable.View duration={500} animation="fadeInLeft">
                                         <Text style={styles.validar}>Ingrese 13 digitos</Text>
@@ -310,7 +311,8 @@ const EmployeeDetails = ({route}) => {
                                         placeholder='Telefono' 
                                         value={phone}
                                         onChangeText={setPhone} 
-                                        onBlur={()=>validar(phone)}           
+                                        onBlur={()=>validar(phone)}
+                                        keyboardType= 'numeric'           
                                     />
                                     {phone ? null : <Animatable.View duration={500} animation="fadeInLeft">
                                         <Text style={styles.validar}>Ingrese 8 digitos</Text>
