@@ -40,7 +40,7 @@ const ViewTags = () => {
 
     return (
         <Wrapper>
-            <ScrollView contentContainerStyle={{ paddingVertical: 32, paddingHorizontal: 16 }} refreshControl={
+            <ScrollView style={{width: '100%'}} refreshControl={
                 <RefreshControl
                     refreshing={refreshing}
                     onRefresh={onRefresh}

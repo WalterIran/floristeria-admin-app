@@ -41,7 +41,8 @@ export default TagResult
 
 const styles = StyleSheet.create({
     container: {
-        width: '100%',
+        width: '90%',
+        marginLeft: 20,
         height: 240,
         borderRadius: 12,
         backgroundColor: '#fff',
